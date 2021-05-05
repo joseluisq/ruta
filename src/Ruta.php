@@ -8,7 +8,7 @@ class Response
 }
 
 /**
- * A WIP and multi purpose (HTTP/CLI) route.
+ * A WIP and multi purpose (HTTP/CLI) route functionality for PHP.
  */
 class Ruta
 {
