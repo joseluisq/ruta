@@ -1,11 +1,14 @@
 <?php
 
+// TODO:
 class Request {
 }
+
+// TODO:
 class Response {
 }
 
-/** A lightweight and multi purpose (HTTP/CLI) routing library for PHP. */
+/** A lightweight and multi purpose HTTP routing library for PHP. */
 class Ruta
 {
     private static $ruta;

@@ -5,7 +5,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require 'Ruta.php';
+require '../../../src/Ruta.php';
 
 Ruta::get('/home/hola', function (Request $req, Response $resp, array $args) {
     echo "<pre>";

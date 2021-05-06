@@ -1,6 +1,26 @@
 # Ruta
 
-> A lightweight and multi purpose (HTTP/CLI) routing library for PHP. (WIP)
+> A lightweight and multi purpose HTTP routing library for PHP. (WIP)
+
+## Requirements
+
+[PHP 8.0+](https://www.php.net/ChangeLog-8.php#PHP_8_0)
+
+## Code example
+
+File: [example/nginx/public/index.php](example/nginx/public/index.php)
+
+```sh
+# Run example using the PHP built-in server
+make dev
+```
+
+```sh
+# Or run example using Docker + Nginx server
+make compose
+```
+
+Now navigate for example to [http://localhost:8088/home/hola](http://localhost:8088/home/hola)
 
 ## Contributions
 
