@@ -11,8 +11,9 @@ echo "<pre>";
 
 $route = Ruta::new();
 
-$route::get('/home/hola', function () {
+$route::get('/home/hola', function (Request $req, Response $resp, array $args) {
     echo "GET /home/hola\n";
+    var_dump($args);
     echo "\n";
 });
 

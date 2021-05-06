@@ -1,4 +1,5 @@
 dev:
+	@php -v
 	@php -S localhost:8088 -t example/nginx/public
 .PHONY: dev
 

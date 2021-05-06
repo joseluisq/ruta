@@ -69,6 +69,10 @@ class Ruta
         $segs = self::parse_path($path);
         // TODO: check also query
         for ($i = 0; $i < count($segs); $i++) {
+            if (!isset(self::$req_path[$i])) {
+                $match = false;
+                break;
+            }
             $in_seg = self::$req_path[$i];
             $seg = $segs[$i];
             if ($seg !== $in_seg) {
