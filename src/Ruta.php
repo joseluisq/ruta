@@ -5,7 +5,7 @@ class Request {
 class Response {
 }
 
-/** A multi purpose (HTTP/CLI) route functionality for PHP. */
+/** A lightweight and multi purpose (HTTP/CLI) routing library for PHP. */
 class Ruta
 {
     private static $ruta;
