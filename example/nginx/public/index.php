@@ -31,4 +31,4 @@ class HomeCtrl
     }
 }
 
-Ruta::get('/home/{path}/some', [HomeCtrl::class, 'index']);
+Ruta::get('/home/{path}/some/{path}', [HomeCtrl::class, 'index']);

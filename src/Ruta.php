@@ -14,9 +14,7 @@ class Ruta
     private static array $req_path = [];
     private static array $req_query = [];
 
-    private function __construct() {}
-
-    /** It handles a `GET` requests. */
+    /** It handles `GET` requests. */
     public static function get(string $path, callable|array $class_method_or_func) {
         self::match_req_route_delegate($path, 'GET', $class_method_or_func);
     }
@@ -56,6 +54,8 @@ class Ruta
         self::match_req_route_delegate($path, 'TRACE', $class_method_or_func);
     }
 
+    private function __construct() {}
+
     /** Create a new singleton instance of `Ruta`. */
     private static function new(string $request_uri = '', string $request_method = '') {
         if (empty($request_uri) && isset($_SERVER['REQUEST_URI'])) {
@@ -73,9 +73,9 @@ class Ruta
             throw new InvalidArgumentException('HTTP request method is not provided.');
         }
         self::$uri = $uri;
-        self::$req_method = $method;
         self::$req_path = self::parse_req_path($uri);
         self::$req_query = self::parse_req_query($uri);
+        self::$req_method = $method;
         if (self::$ruta) {
             return self::$ruta;
         }
@@ -113,8 +113,10 @@ class Ruta
         $match = true;
         $args = [];
         $segs = self::parse_req_path($path);
+        $segs_count = count($segs);
+        $has_placeholder = false;
         // TODO: check also query
-        for ($i = 0; $i < count($segs); $i++) {
+        for ($i = 0; $i < $segs_count; $i++) {
             if (!isset(self::$req_path[$i])) {
                 $match = false;
                 break;
@@ -127,12 +129,16 @@ class Ruta
                     $key = trim(str_replace('}', '', str_replace('{', '', $seg)));
                     if (!empty($key)) {
                         $args[$key] = $seg_in;
+                        $has_placeholder = true;
                         continue;
                     }
                 }
                 $match = false;
                 break;
             }
+        }
+        if ($match && !$has_placeholder && $segs_count < count(self::$req_path)) {
+            $match = false;
         }
         return [$match, $args];
     }
