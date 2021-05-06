@@ -9,15 +9,13 @@ require 'Ruta.php';
 
 echo "<pre>";
 
-$route = Ruta::new();
-
-$route::get('/home/hola', function (Request $req, Response $resp, array $args) {
+Ruta::get('/home/hola', function (Request $req, Response $resp, array $args) {
     echo "GET /home/hola\n";
     var_dump($args);
     echo "\n";
 });
 
-$route::get('/home/{path}', function (Request $req, Response $resp, array $args) {
+Ruta::get('/home/{path}', function (Request $req, Response $resp, array $args) {
     echo "GET /home/{path}\n";
     var_dump('PATH: ' . $args['path']);
     echo "\n";
@@ -33,4 +31,4 @@ class HomeCtrl
     }
 }
 
-$route::get('/home/{path}/some', [HomeCtrl::class, 'index']);
+Ruta::get('/home/{path}/some', [HomeCtrl::class, 'index']);

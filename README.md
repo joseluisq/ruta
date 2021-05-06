@@ -1,6 +1,6 @@
 # Ruta
 
-> A WIP and multi purpose (HTTP/CLI) route functionality for PHP.
+> A multi purpose (HTTP/CLI) route functionality for PHP. (WIP)
 
 ## Contributions
 
