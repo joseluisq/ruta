@@ -147,19 +147,21 @@ class Ruta
         $path = trim(parse_url($path, PHP_URL_PATH));
         $segs = [];
         $j = 0;
+        $slashes = 0;
         for ($i = 0; $i < strlen($path); $i++) {
-            $s = $path[$i];
-            if ($s === '/') {
-                if ($i === 0) {
+            if ($path[$i] === '/') {
+                $slashes++;
+                if ($i === 0 || $slashes > 1) {
                     continue;
                 }
                 $j++;
                 continue;
             }
             if (!isset($segs[$j])) {
+                $slashes = 0;
                 array_push($segs, '');
             }
-            $segs[$j] .= $s;
+            $segs[$j] .= $path[$i];
         }
         return $segs;
     }
@@ -168,11 +170,10 @@ class Ruta
         $query = trim(parse_url($query, PHP_URL_QUERY));
         $segs = [];
         $j = 0;
-        $j2 = 0;
+        $jj = 0;
         for ($i = 0; $i < strlen($query); $i++) {
-            $s = $query[$i];
-            if ($s === '&') {
-                $j2 = 0;
+            if ($query[$i] === '&') {
+                $jj = 0;
                 if ($i === 0) {
                     continue;
                 }
@@ -182,11 +183,11 @@ class Ruta
             if (!isset($segs[$j])) {
                 array_push($segs, ['', '']);
             }
-            if ($s === '=') {
-                $j2++;
+            if ($query[$i] === '=') {
+                $jj++;
                 continue;
             }
-            $segs[$j][$j2] .= $s;
+            $segs[$j][$jj] .= $query[$i];
         }
         return $segs;
     }

@@ -1,34 +1,33 @@
 <?php
 
-// Example
+// Routing example
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require 'Ruta.php';
 
-echo "<pre>";
-
 Ruta::get('/home/hola', function (Request $req, Response $resp, array $args) {
-    echo "GET /home/hola\n";
+    echo "<pre>";
+    echo "<b>GET /home/hola</b>\n";
     var_dump($args);
-    echo "\n";
+    echo "</pre>\n";
 });
 
 Ruta::get('/home/{path}', function (Request $req, Response $resp, array $args) {
-    echo "GET /home/{path}\n";
+    echo "<pre>";
+    echo "<b>GET /home/{path}</b>\n";
     var_dump('PATH: ' . $args['path']);
-    echo "\n";
+    echo "</pre>\n";
 });
 
-class HomeCtrl
-{
-    public function index(Request $req, Response $resp, array $args)
-    {
-        echo "GET /home/{path}/some\n";
+class HomeCtrl {
+    public function index(Request $req, Response $resp, array $args) {
+        echo "<pre>";
+        echo "<b>GET /home/{path1}/some/{path2}</b>\n";
         var_dump($args);
-        echo "\n";
+        echo "</pre>\n";
     }
 }
 
-Ruta::get('/home/{path}/some/{path}', [HomeCtrl::class, 'index']);
+Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
