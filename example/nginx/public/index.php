@@ -8,10 +8,12 @@ ini_set('display_errors', 1);
 require '../../../src/Ruta.php';
 
 Ruta::get('/home/hola', function (Request $req, Response $resp, array $args) {
-    echo "<pre>";
-    echo "<b>GET /home/hola</b>\n";
-    var_dump($args);
-    echo "</pre>\n";
+    // echo "<pre>";
+    // echo "<b>GET /home/hola</b>\n";
+    // var_dump($args);
+    // echo "</pre>\n";
+
+    $resp->json(['data' => 'hello world!']);
 });
 
 Ruta::put('/home/hola', function (Request $req, Response $resp, array $args) {

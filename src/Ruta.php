@@ -81,6 +81,7 @@ class Request {
 
 // TODO: complete the response object
 class Response {
+    private string $method = '';
     private string $status = 'HTTP/1.1 200 OK';
     private array $statuses = [
         100 => 'Continue', // RFC 7231, 6.2.1
@@ -149,6 +150,10 @@ class Response {
     ];
     private array $headers = [];
 
+    public function __construct(string $method) {
+        $this->method = $method;
+    }
+
     /** It adds the HTTP status. */
     public function status(int $status = 200) {
         if (isset($this->statuses[$status])) {
@@ -186,10 +191,11 @@ class Response {
     /** It outputs the corresponding response using given raw data. */
     private function output(string $data, bool $print_data = true) {
         header($this->status);
+        $this->header('content-length', strlen($data));
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
-        if ($print_data) {
+        if ($print_data && $this->method != 'HEAD') {
             echo $data;
         }
     }
@@ -304,9 +310,7 @@ class Ruta
     }
 
     private static function get_response() {
-        // TODO: prepare a response object
-        $res = new Response();
-        return $res;
+        return new Response(self::$req_method);
     }
 
     private static function match_req_path_query(string $path) {
