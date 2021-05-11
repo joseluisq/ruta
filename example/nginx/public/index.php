@@ -14,11 +14,13 @@ Ruta::get('/home/hola', function (Request $req, Response $resp, array $args) {
     echo "</pre>\n";
 });
 
-Ruta::post('/home/hola', function (Request $req, Response $resp, array $args) {
-    echo "<pre>";
-    echo "<b>POST /home/hola</b>\n";
-    var_dump($args);
-    echo "</pre>\n";
+Ruta::put('/home/hola', function (Request $req, Response $resp, array $args) {
+    // echo "<pre>";
+    // echo "<b>POST /home/hola</b>\n";
+    // var_dump($args);
+    // echo "</pre>\n";
+
+    $resp->redirect('/home/aaa/some/bbb');
 });
 
 Ruta::put('/home/{path}', function (Request $req, Response $resp, array $args) {

@@ -165,7 +165,7 @@ class Response {
     }
     
     /** It outputs a HTTP response in JSON format. */
-    public function json(string|array|null $data, int $flags = 0, int $depth = 512) {
+    public function json(mixed $data, int $flags = 0, int $depth = 512) {
         $this->header('content-type', 'application/json');
         $data = json_encode($data, $flags, $depth);
         $this->output($data);
@@ -176,13 +176,22 @@ class Response {
         // TODO: implement donwload response
     }
 
+    /** It redirects to a given URL. */
+    public function redirect(string $url, int $redirect_status = 308) {
+        $this->status($redirect_status);
+        $this->header('location', $url);
+        $this->output('', false);
+    }
+
     /** It outputs the corresponding response using given raw data. */
-    private function output(string $data) {
+    private function output(string $data, bool $print_data = true) {
         header($this->status);
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
-        echo $data;
+        if ($print_data) {
+            echo $data;
+        }
     }
 }
 
