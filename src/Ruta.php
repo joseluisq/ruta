@@ -1,10 +1,80 @@
 <?php
 
-// TODO:
+// TODO: complete the request object
 class Request {
+    public string $method = '';
+	public string $uri = '';
+	public array $path = [];
+	public array $query = [];
+	public string $proto = '';
+	public array $headers = [];
+	public string $content_type = '';
+	public string $raw = '';
+
+    public function __construct(string $method, array $path, array $query, string $uri) {
+        $this->method = $method;
+        $this->path = $path;
+        $this->query = $query;
+        $this->proto = $_SERVER['SERVER_PROTOCOL'] ?? '';
+        $this->uri = $uri;
+        $this->content_type = trim($_SERVER['HTTP_CONTENT_TYPE'] ?? '');
+        // TODO: prepare headers
+        // $req->header = [];
+        switch ($method) {
+            case 'POST':
+            case 'PUT':
+            case 'DELETE':
+                $this->raw = file_get_contents('php://input');
+                break;
+        }
+    }
+
+    /** It gets the request body data in raw format. */
+    public function raw(): string {
+        return $this->raw;
+    }
+
+    /** It gets the body data of a `multipart/form-data` content type request. */
+    public function multipart(): array {
+        $data = [];
+        if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === 'POST') {
+            $data = $_POST;
+        }
+        return $data;
+    }
+
+    /** It gets the body data of a `x-www-form-urlencoded` content type request. */
+    public function urlencoded(): array {
+        $data = [];
+        if (str_starts_with($this->content_type, 'application/x-www-form-urlencoded')) {
+            parse_str($this->raw, $data);
+        }
+        return $data;
+    }
+
+    /** It gets the body data of a `xml` content type request. */
+    public function xml(): SimpleXMLElement|null {
+        $xml = null;
+        if (str_starts_with($this->content_type, 'application/xml')) {
+            $xml = simplexml_load_string($this->raw);
+            if (!$xml) {
+                $xml = null;
+            }
+        }
+        return $xml;
+    }
+
+    /** It gets the body data of a `json` content type request. */
+    public function json(): string|array|null {
+        $json = null;
+        if (str_starts_with($this->content_type, 'application/json')) {
+            $json = json_decode($this->raw, true);
+        }
+        return $json;
+    }
 }
 
-// TODO:
+// TODO: complete the response object
 class Response {
 }
 
@@ -104,12 +174,22 @@ class Ruta
             list($class_name, $method) = $class_method_or_func;
             $class_method = [new $class_name(), $method];
             if (is_callable($class_method, false)) {
-                call_user_func_array($class_method, [new Request(), new Response(), $args]);
+                call_user_func_array($class_method, [self::get_request(), self::get_response(), $args]);
                 return;
             }
             throw new InvalidArgumentException('Provided class is not defined or its method is not callable.');
         }
-        $class_method_or_func(new Request(), new Response(), $args);
+        $class_method_or_func(self::get_request(), self::get_response(), $args);
+    }
+
+    private static function get_request() {
+        return new Request(self::$req_method, self::$req_path, self::$req_query, self::$uri);
+    }
+
+    private static function get_response() {
+        // TODO: prepare a response object
+        $res = new Response();
+        return $res;
     }
 
     private static function match_req_path_query(string $path) {

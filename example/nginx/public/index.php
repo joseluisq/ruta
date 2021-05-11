@@ -21,10 +21,11 @@ Ruta::post('/home/hola', function (Request $req, Response $resp, array $args) {
     echo "</pre>\n";
 });
 
-Ruta::get('/home/{path}', function (Request $req, Response $resp, array $args) {
+Ruta::put('/home/{path}', function (Request $req, Response $resp, array $args) {
     echo "<pre>";
     echo "<b>GET /home/{path}</b>\n";
     var_dump('PATH: ' . $args['path']);
+    var_dump($req->json());
     echo "</pre>\n";
 });
 
