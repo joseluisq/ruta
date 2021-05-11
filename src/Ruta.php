@@ -72,6 +72,11 @@ class Request {
         }
         return $json;
     }
+
+    /** It gets the request query data. */
+    public function query(): array {
+        return $this->query;
+    }
 }
 
 // TODO: complete the response object
@@ -147,7 +152,7 @@ class Ruta
         }
         self::$uri = $uri;
         self::$req_path = self::parse_req_path($uri);
-        self::$req_query = self::parse_req_query($uri);
+        self::$req_query = $_GET;
         self::$req_method = $method;
         if (self::$ruta) {
             return self::$ruta;
@@ -245,32 +250,6 @@ class Ruta
                 array_push($segs, '');
             }
             $segs[$j] .= $path[$i];
-        }
-        return $segs;
-    }
-
-    private static function parse_req_query(string $query) {
-        $query = trim(parse_url($query, PHP_URL_QUERY));
-        $segs = [];
-        $j = 0;
-        $jj = 0;
-        for ($i = 0; $i < strlen($query); $i++) {
-            if ($query[$i] === '&') {
-                $jj = 0;
-                if ($i === 0) {
-                    continue;
-                }
-                $j++;
-                continue;
-            }
-            if (!isset($segs[$j])) {
-                array_push($segs, ['', '']);
-            }
-            if ($query[$i] === '=') {
-                $jj++;
-                continue;
-            }
-            $segs[$j][$jj] .= $query[$i];
         }
         return $segs;
     }
