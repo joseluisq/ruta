@@ -22,12 +22,17 @@ Ruta::post('/home/hola', function (Request $req, Response $resp, array $args) {
 });
 
 Ruta::put('/home/{path}', function (Request $req, Response $resp, array $args) {
-    echo "<pre>";
-    echo "<b>PUT /home/{path}</b>\n";
-    var_dump('PATH: ' . $args['path']);
-    var_dump($req->multipart());
-    var_dump($req->query());
-    echo "</pre>\n";
+    // echo "<pre>";
+    // echo "<b>PUT /home/{path}</b>\n";
+    // var_dump('PATH: ' . $args['path']);
+    // var_dump($req->multipart());
+    // var_dump($req->query());
+    // echo "</pre>\n";
+
+    $resp
+        ->header('X-Header-One', 'Header Value')
+        ->header('X-Header-Two', 'Header Value')
+        ->json(['data' => 123123123]);
 });
 
 class HomeCtrl {
