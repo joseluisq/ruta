@@ -3,13 +3,13 @@
 // TODO: complete the request object
 class Request {
     public string $method = '';
-	public string $uri = '';
-	public array $path = [];
-	public array $query = [];
-	public string $proto = '';
-	public array $headers = [];
-	public string $content_type = '';
-	public string $raw = '';
+    public string $uri = '';
+    public array $path = [];
+    public array $query = [];
+    public string $proto = '';
+    public array $headers = [];
+    public string $content_type = '';
+    public string $raw = '';
 
     public function __construct(string $method, array $path, array $query, string $uri) {
         $this->method = $method;
@@ -168,7 +168,7 @@ class Response {
         $this->headers[$key] = $value;
         return $this;
     }
-    
+
     /** It outputs a HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512) {
         $this->header('content-type', 'application/json');
@@ -202,8 +202,7 @@ class Response {
 }
 
 /** A lightweight and multi purpose HTTP routing library for PHP. */
-class Ruta
-{
+class Ruta {
     private static $ruta;
     private static string $uri = '';
     private static string $req_method = '';
