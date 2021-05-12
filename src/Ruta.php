@@ -176,11 +176,6 @@ class Response {
         $this->output($data);
     }
 
-    /** It creates a response that forces to download the file at a given path. */
-    public function download(string $file_path, string $name = '') {
-        // TODO: implement donwload response
-    }
-
     /** It redirects to a given URL. */
     public function redirect(string $url, int $redirect_status = 308) {
         $this->status($redirect_status);
@@ -198,6 +193,65 @@ class Response {
         if ($print_data && $this->method != 'HEAD') {
             echo $data;
         }
+    }
+
+    /** It creates a response that forces to download the file at a given path. */
+    public function download(string $file_path, string $name = '') {
+        if (file_exists($file_path)) {
+            $this->status();
+            // TODO: we want to guess the mime type
+            $this->header('content-type', 'application/octet-stream');
+            $this->header('content-description', 'File Transfer');
+            $filename = empty($name) ? basename($file_path) : $name;
+            $this->header('content-disposition', 'attachment; filename="'.$filename.'"');
+            $this->header('expires', '0');
+            $this->header('cache-control', 'must-revalidate');
+            $this->header('pragma', 'public');
+            $this->header('content-length', filesize($file_path));
+            header($this->status);
+            foreach ($this->headers as $key => $value) {
+                header("$key: $value");
+            }
+            if ($this->method != 'HEAD') {
+                readfile($file_path);
+            }
+        }
+        // TODO: respond with a 404
+    }
+
+    /** It creates a response that serves a file at a given path. */
+    public function file(string $base_path, string $file_path) {
+        // Protect against path/directory traversal
+        $path = [];
+        $segs = explode('/', urldecode(trim($file_path)));
+        foreach ($segs as $seg) {
+            if (str_starts_with($seg, '..')) {
+                // TODO: rejecting segment starting with '..'
+                // Respond with a 404
+            } elseif (str_starts_with($seg, '\\')) {
+                // TODO: rejecting segment containing with backslash (\\)
+                // Respond with a 404
+            } else {
+                array_push($path, $seg);
+            }
+        }
+        $file_path = "$base_path/" . implode('/', $path);
+        if (file_exists($file_path)) {
+            $this->status();
+            // TODO: we want to guess the mime type
+            // $this->header('content-type', 'application/octet-stream');
+            // TODO: we want to have more control over these headers
+            $this->header('cache-control', 'public, max-age=0');
+            $this->header('content-length', filesize($file_path));
+            header($this->status);
+            foreach ($this->headers as $key => $value) {
+                header("$key: $value");
+            }
+            if ($this->method != 'HEAD') {
+                readfile($file_path);
+            }
+        }
+        // TODO: respond with a 404
     }
 }
 
@@ -252,7 +306,7 @@ class Ruta {
     private function __construct() {}
 
     /** Create a new singleton instance of `Ruta`. */
-    private static function new(string $request_uri = '', string $request_method = '') {
+    public static function new(string $request_uri = '', string $request_method = '') {
         if (empty($request_uri) && isset($_SERVER['REQUEST_URI'])) {
             $request_uri = $_SERVER['REQUEST_URI'];
         }

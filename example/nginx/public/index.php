@@ -19,21 +19,26 @@ Ruta::post('/home/{path}', function (Request $req, Response $res, array $args) {
         ->header('X-Header-Two', 'Header Value 2')
         ->json(['some_data' => 223424234]);
 });
+Ruta::get('/home/files/{file}', function (Request $req, Response $res, array $args) {
+    $base_path = getcwd();
+    $file_path = $args['file'];
+    $res->file($base_path, $file_path);
+});
 
 // 2. Using a class and method
 class HomeCtrl {
     public function index(Request $req, Response $res, array $args) {
-        // 1.1 $args contains route placeholder values
+        // 2.1 $args contains route placeholder values
         if ($args['path1']) { }
-        // 1.2. Get data provided via `multipart/form-data` 
+        // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
-        // 1.3. Get data provided via `application/x-www-form-urlencoded` 
+        // 2.3. Get data provided via `application/x-www-form-urlencoded` 
         $data = $req->urlencoded();
-        // 1.4. Get data provided via `application/json`
+        // 2.4. Get data provided via `application/json`
         $data = $req->json();
-        // 1.5. Get data provided via `application/xml`
+        // 2.5. Get data provided via `application/xml`
         $data = $req->xml();
-        // 1.6. Get query data
+        // 2.6. Get query data
         $data = $req->query();
         $res->json(['data' => 'hello world!']);
     }
