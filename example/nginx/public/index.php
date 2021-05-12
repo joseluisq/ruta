@@ -7,7 +7,7 @@ require '../../../src/Ruta.php';
 
 // 1. Using callbacks
 Ruta::get('/home/hola', function (Request $req, Response $res, array $args) {
-    $res->json(['data' => 'hello world!']);
+    $res->json(['data' => 'Hello World!']);
 });
 Ruta::put('/home/hola', function (Request $req, Response $res, array $args) {
     $res->redirect('/home/aaa/some/bbb');
@@ -26,10 +26,13 @@ Ruta::get('/home/files/{file}', function (Request $req, Response $res, array $ar
 });
 
 // 2. Using a class and method
-class HomeCtrl {
-    public function index(Request $req, Response $res, array $args) {
+class HomeCtrl
+{
+    public function index(Request $req, Response $res, array $args)
+    {
         // 2.1 $args contains route placeholder values
-        if ($args['path1']) { }
+        if ($args['path1']) {
+        }
         // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
         // 2.3. Get data provided via `application/x-www-form-urlencoded` 
@@ -40,7 +43,7 @@ class HomeCtrl {
         $data = $req->xml();
         // 2.6. Get query data
         $data = $req->query();
-        $res->json(['data' => 'hello world!']);
+        $res->json(['data' => 'Message from within a class!']);
     }
 }
 Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
