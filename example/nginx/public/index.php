@@ -9,7 +9,7 @@ require '../../../src/Ruta.php';
 Ruta::get('/home/hola', function (Request $req, Response $res, array $args) {
     $res->json(['data' => 'Hello World!']);
 });
-Ruta::put('/home/hola', function (Request $req, Response $res, array $args) {
+Ruta::get('/home/hola/redirect', function (Request $req, Response $res, array $args) {
     $res->redirect('/home/aaa/some/bbb');
 });
 Ruta::post('/home/{path}', function (Request $req, Response $res, array $args) {

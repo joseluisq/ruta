@@ -70,6 +70,81 @@ class Status
     public const LoopDetected = 508; // RFC 5842, 7.2
     public const NotExtended = 510; // RFC 2774, 7
     public const NetworkAuthenticationRequired = 511; // RFC 6585, 6
+
+    public const STATUS_MAP = [
+        Status::Continue => 'Continue',
+        Status::SwitchingProtocols => 'Switching Protocols',
+        Status::Processing => 'Processing',
+        Status::EarlyHints => 'Early Hints',
+    
+        Status::OK => 'OK',
+        Status::Created => 'Created',
+        Status::Accepted => 'Accepted',
+        Status::NonAuthoritativeInfo => 'Non-Authoritative Information',
+        Status::NoContent => 'No Content',
+        Status::ResetContent => 'Reset Content',
+        Status::PartialContent => 'Partial Content',
+        Status::MultiStatus => 'Multi-Status',
+        Status::AlreadyReported => 'Already Reported',
+        Status::IMUsed => 'IM Used',
+    
+        Status::MultipleChoices => 'Multiple Choices',
+        Status::MovedPermanently => 'Moved Permanently',
+        Status::Found => 'Found',
+        Status::SeeOther => 'See Other',
+        Status::NotModified => 'Not Modified',
+        Status::UseProxy => 'Use Proxy',
+        Status::TemporaryRedirect => 'Temporary Redirect',
+        Status::PermanentRedirect => 'Permanent Redirect',
+    
+        Status::BadRequest => 'Bad Request',
+        Status::Unauthorized => 'Unauthorized',
+        Status::PaymentRequired => 'Payment Required',
+        Status::Forbidden => 'Forbidden',
+        Status::NotFound => 'Not Found',
+        Status::MethodNotAllowed => 'Method Not Allowed',
+        Status::NotAcceptable => 'Not Acceptable',
+        Status::ProxyAuthRequired => 'Proxy Authentication Required',
+        Status::RequestTimeout => 'Request Timeout',
+        Status::Conflict => 'Conflict',
+        Status::Gone => 'Gone',
+        Status::LengthRequired => 'Length Required',
+        Status::PreconditionFailed => 'Precondition Failed',
+        Status::RequestEntityTooLarge => 'Request Entity Too Large',
+        Status::RequestURITooLong => 'Request URI Too Long',
+        Status::UnsupportedMediaType => 'Unsupported Media Type',
+        Status::RequestedRangeNotSatisfiable => 'Requested Range Not Satisfiable',
+        Status::ExpectationFailed => 'Expectation Failed',
+        Status::Teapot => 'I\'m a teapot',
+        Status::MisdirectedRequest => 'Misdirected Request',
+        Status::UnprocessableEntity => 'Unprocessable Entity',
+        Status::Locked => 'Locked',
+        Status::FailedDependency => 'Failed Dependency',
+        Status::TooEarly => 'Too Early',
+        Status::UpgradeRequired => 'Upgrade Required',
+        Status::PreconditionRequired => 'Precondition Required',
+        Status::TooManyRequests => 'Too Many Requests',
+        Status::RequestHeaderFieldsTooLarge => 'Request Header Fields Too Large',
+        Status::UnavailableForLegalReasons => 'Unavailable For Legal Reasons',
+    
+        Status::InternalServerError => 'Internal Server Error',
+        Status::NotImplemented => 'Not Implemented',
+        Status::BadGateway => 'Bad Gateway',
+        Status::ServiceUnavailable => 'Service Unavailable',
+        Status::GatewayTimeout => 'Gateway Timeout',
+        Status::HTTPVersionNotSupported => 'HTTP Version Not Supported',
+        Status::VariantAlsoNegotiates => 'Variant Also Negotiates',
+        Status::InsufficientStorage => 'Insufficient Storage',
+        Status::LoopDetected => 'Loop Detected',
+        Status::NotExtended => 'Not Extended',
+        Status::NetworkAuthenticationRequired => 'Network Authentication Required',
+    ];
+    
+    // It returns a text for the HTTP status code.
+    // An empty string is returned if the code is unknown.
+    public static function text(int $status): string {
+        return self::STATUS_MAP[$status] ?? '';
+    }
 }
 
 // It defines HTTP request methods.
@@ -293,10 +368,11 @@ class Response
     }
 
     /** It adds the HTTP status. */
-    public function status(int $status = Status::OK)
+    public function status(int $status_code = Status::OK)
     {
-        if (isset($this->statuses[$status])) {
-            $this->status = "HTTP/1.1 $status " . $this->statuses[$status];
+        $status_str = Status::text($status_code);
+        if (!empty($status_str)) {
+            $this->status = "HTTP/1.1 $status_code $status_str";
         }
         return $this;
     }
