@@ -1,5 +1,90 @@
 <?php
 
+// It defines HTTP Status codes.
+class Status
+{
+    public const Continue = 100; // RFC 7231, 6.2.1
+    public const SwitchingProtocols = 101; // RFC 7231, 6.2.2
+    public const Processing = 102; // RFC 2518, 10.1
+    public const EarlyHints = 103; // RFC 8297
+
+    public const OK = 200; // RFC 7231, 6.3.1
+    public const Created = 201; // RFC 7231, 6.3.2
+    public const Accepted = 202; // RFC 7231, 6.3.3
+    public const NonAuthoritativeInfo = 203; // RFC 7231, 6.3.4
+    public const NoContent = 204; // RFC 7231, 6.3.5
+    public const ResetContent = 205; // RFC 7231, 6.3.6
+    public const PartialContent = 206; // RFC 7233, 4.1
+    public const MultiStatus = 207; // RFC 4918, 11.1
+    public const AlreadyReported = 208; // RFC 5842, 7.1
+    public const IMUsed = 226; // RFC 3229, 10.4.1
+
+    public const MultipleChoices = 300; // RFC 7231, 6.4.1
+    public const MovedPermanently = 301; // RFC 7231, 6.4.2
+    public const Found = 302; // RFC 7231, 6.4.3
+    public const SeeOther = 303; // RFC 7231, 6.4.4
+    public const NotModified = 304; // RFC 7232, 4.1
+    public const UseProxy = 305; // RFC 7231, 6.4.5
+    public const _ = 306; // RFC 7231, 6.4.6 (Unused)
+    public const TemporaryRedirect = 307; // RFC 7231, 6.4.7
+    public const PermanentRedirect = 308; // RFC 7538, 3
+
+    public const BadRequest = 400; // RFC 7231, 6.5.1
+    public const Unauthorized = 401; // RFC 7235, 3.1
+    public const PaymentRequired = 402; // RFC 7231, 6.5.2
+    public const Forbidden = 403; // RFC 7231, 6.5.3
+    public const NotFound = 404; // RFC 7231, 6.5.4
+    public const MethodNotAllowed = 405; // RFC 7231, 6.5.5
+    public const NotAcceptable = 406; // RFC 7231, 6.5.6
+    public const ProxyAuthRequired = 407; // RFC 7235, 3.2
+    public const RequestTimeout = 408; // RFC 7231, 6.5.7
+    public const Conflict = 409; // RFC 7231, 6.5.8
+    public const Gone = 410; // RFC 7231, 6.5.9
+    public const LengthRequired = 411; // RFC 7231, 6.5.10
+    public const PreconditionFailed = 412; // RFC 7232, 4.2
+    public const RequestEntityTooLarge = 413; // RFC 7231, 6.5.11
+    public const RequestURITooLong = 414; // RFC 7231, 6.5.12
+    public const UnsupportedMediaType = 415; // RFC 7231, 6.5.13
+    public const RequestedRangeNotSatisfiable = 416; // RFC 7233, 4.4
+    public const ExpectationFailed = 417; // RFC 7231, 6.5.14
+    public const Teapot = 418; // RFC 7168, 2.3.3
+    public const MisdirectedRequest = 421; // RFC 7540, 9.1.2
+    public const UnprocessableEntity = 422; // RFC 4918, 11.2
+    public const Locked = 423; // RFC 4918, 11.3
+    public const FailedDependency = 424; // RFC 4918, 11.4
+    public const TooEarly = 425; // RFC 8470, 5.2.
+    public const UpgradeRequired = 426; // RFC 7231, 6.5.15
+    public const PreconditionRequired = 428; // RFC 6585, 3
+    public const TooManyRequests = 429; // RFC 6585, 4
+    public const RequestHeaderFieldsTooLarge = 431; // RFC 6585, 5
+    public const UnavailableForLegalReasons = 451; // RFC 7725, 3
+
+    public const InternalServerError = 500; // RFC 7231, 6.6.1
+    public const NotImplemented = 501; // RFC 7231, 6.6.2
+    public const BadGateway = 502; // RFC 7231, 6.6.3
+    public const ServiceUnavailable = 503; // RFC 7231, 6.6.4
+    public const GatewayTimeout = 504; // RFC 7231, 6.6.5
+    public const HTTPVersionNotSupported = 505; // RFC 7231, 6.6.6
+    public const VariantAlsoNegotiates = 506; // RFC 2295, 8.1
+    public const InsufficientStorage = 507; // RFC 4918, 11.5
+    public const LoopDetected = 508; // RFC 5842, 7.2
+    public const NotExtended = 510; // RFC 2774, 7
+    public const NetworkAuthenticationRequired = 511; // RFC 6585, 6
+}
+
+// It defines HTTP request methods.
+class Method
+{
+    public const GET = 'GET';
+    public const HEAD = 'HEAD';
+    public const POST = 'POST';
+    public const PUT = 'PUT';
+    public const DELETE = 'DELETE';
+    public const CONNECT = 'CONNECT';
+    public const OPTIONS = 'OPTIONS';
+    public const TRACE = 'TRACE';
+}
+
 // It defines a HTTP Header map.
 class Header
 {
@@ -103,9 +188,9 @@ class Request
         // TODO: prepare headers
         // $req->header = [];
         switch ($method) {
-            case 'POST':
-            case 'PUT':
-            case 'DELETE':
+            case Method::POST:
+            case Method::PUT:
+            case Method::DELETE:
                 $this->raw_data = file_get_contents('php://input');
                 break;
         }
@@ -157,7 +242,7 @@ class Request
     public function multipart(): array
     {
         $data = [];
-        if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === 'POST') {
+        if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === Method::POST) {
             $data = $_POST;
         }
         return $data;
@@ -201,71 +286,6 @@ class Request
 class Response
 {
     private string $status = 'HTTP/1.1 200 OK';
-    private array $statuses = [
-        100 => 'Continue', // RFC 7231, 6.2.1
-        101 => 'SwitchingProtocols', // RFC 7231, 6.2.2
-        102 => 'Processing', // RFC 2518, 10.1
-        103 => 'EarlyHints', // RFC 8297
-        200 => 'OK', // RFC 7231, 6.3.1
-        201 => 'Created', // RFC 7231, 6.3.2
-        202 => 'Accepted', // RFC 7231, 6.3.3
-        203 => 'NonAuthoritativeInfo', // RFC 7231, 6.3.4
-        204 => 'NoContent', // RFC 7231, 6.3.5
-        205 => 'ResetContent', // RFC 7231, 6.3.6
-        206 => 'PartialContent', // RFC 7233, 4.1
-        207 => 'MultiStatus', // RFC 4918, 11.1
-        208 => 'AlreadyReported', // RFC 5842, 7.1
-        226 => 'IMUsed', // RFC 3229, 10.4.1
-        300 => 'MultipleChoices', // RFC 7231, 6.4.1
-        301 => 'MovedPermanently', // RFC 7231, 6.4.2
-        302 => 'Found', // RFC 7231, 6.4.3
-        303 => 'SeeOther', // RFC 7231, 6.4.4
-        304 => 'NotModified', // RFC 7232, 4.1
-        305 => 'UseProxy', // RFC 7231, 6.4.5
-        306 => '_', // RFC 7231, 6.4.6 (Unused)
-        307 => 'TemporaryRedirect', // RFC 7231, 6.4.7
-        308 => 'PermanentRedirect', // RFC 7538, 3
-        400 => 'BadRequest', // RFC 7231, 6.5.1
-        401 => 'Unauthorized', // RFC 7235, 3.1
-        402 => 'PaymentRequired', // RFC 7231, 6.5.2
-        403 => 'Forbidden', // RFC 7231, 6.5.3
-        404 => 'NotFound', // RFC 7231, 6.5.4
-        405 => 'MethodNotAllowed', // RFC 7231, 6.5.5
-        406 => 'NotAcceptable', // RFC 7231, 6.5.6
-        407 => 'ProxyAuthRequired', // RFC 7235, 3.2
-        408 => 'RequestTimeout', // RFC 7231, 6.5.7
-        409 => 'Conflict', // RFC 7231, 6.5.8
-        410 => 'Gone', // RFC 7231, 6.5.9
-        411 => 'LengthRequired', // RFC 7231, 6.5.10
-        412 => 'PreconditionFailed', // RFC 7232, 4.2
-        413 => 'RequestEntityTooLarge', // RFC 7231, 6.5.11
-        414 => 'RequestURITooLong', // RFC 7231, 6.5.12
-        415 => 'UnsupportedMediaType', // RFC 7231, 6.5.13
-        416 => 'RequestedRangeNotSatisfiable', // RFC 7233, 4.4
-        417 => 'ExpectationFailed', // RFC 7231, 6.5.14
-        418 => 'Teapot', // RFC 7168, 2.3.3
-        421 => 'MisdirectedRequest', // RFC 7540, 9.1.2
-        422 => 'UnprocessableEntity', // RFC 4918, 11.2
-        423 => 'Locked', // RFC 4918, 11.3
-        424 => 'FailedDependency', // RFC 4918, 11.4
-        425 => 'TooEarly', // RFC 8470, 5.2.
-        426 => 'UpgradeRequired', // RFC 7231, 6.5.15
-        428 => 'PreconditionRequired', // RFC 6585, 3
-        429 => 'TooManyRequests', // RFC 6585, 4
-        431 => 'RequestHeaderFieldsTooLarge', // RFC 6585, 5
-        451 => 'UnavailableForLegalReasons', // RFC 7725, 3
-        500 => 'InternalServerError', // RFC 7231, 6.6.1
-        501 => 'NotImplemented', // RFC 7231, 6.6.2
-        502 => 'BadGateway', // RFC 7231, 6.6.3
-        503 => 'ServiceUnavailable', // RFC 7231, 6.6.4
-        504 => 'GatewayTimeout', // RFC 7231, 6.6.5
-        505 => 'HTTPVersionNotSupported', // RFC 7231, 6.6.6
-        506 => 'VariantAlsoNegotiates', // RFC 2295, 8.1
-        507 => 'InsufficientStorage', // RFC 4918, 11.5
-        508 => 'LoopDetected', // RFC 5842, 7.2
-        510 => 'NotExtended', // RFC 2774, 7
-        511 => 'NetworkAuthenticationRequired', // RFC 6585, 6
-    ];
     private array $headers = [];
 
     public function __construct(public string $method = '')
@@ -273,7 +293,7 @@ class Response
     }
 
     /** It adds the HTTP status. */
-    public function status(int $status = 200)
+    public function status(int $status = Status::OK)
     {
         if (isset($this->statuses[$status])) {
             $this->status = "HTTP/1.1 $status " . $this->statuses[$status];
@@ -292,16 +312,16 @@ class Response
     /** It outputs a HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512)
     {
-        $this->header('content-type', 'application/json');
+        $this->header(Header::ContentType, 'application/json');
         $data = json_encode($data, $flags, $depth);
         $this->output($data);
     }
 
     /** It redirects to a given URL. */
-    public function redirect(string $url, int $redirect_status = 308)
+    public function redirect(string $url, int $redirect_status = Status::PermanentRedirect)
     {
         $this->status($redirect_status);
-        $this->header('location', $url);
+        $this->header(Header::Location, $url);
         $this->output('', false);
     }
 
@@ -309,11 +329,11 @@ class Response
     private function output(string $data, bool $print_data = true)
     {
         header($this->status);
-        $this->header('content-length', strlen($data));
+        $this->header(Header::ContentLength, strlen($data));
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
-        if ($print_data && $this->method != 'HEAD') {
+        if ($print_data && $this->method != Method::HEAD) {
             echo $data;
         }
     }
@@ -324,19 +344,18 @@ class Response
         if (file_exists($file_path)) {
             $this->status();
             // TODO: we want to guess the mime type
-            $this->header('content-type', 'application/octet-stream');
-            $this->header('content-description', 'File Transfer');
+            $this->header(Header::ContentType, 'application/octet-stream');
             $filename = empty($name) ? basename($file_path) : $name;
-            $this->header('content-disposition', 'attachment; filename="' . $filename . '"');
-            $this->header('expires', '0');
-            $this->header('cache-control', 'must-revalidate');
-            $this->header('pragma', 'public');
-            $this->header('content-length', filesize($file_path));
+            $this->header(Header::ContentDisposition, 'attachment; filename="' . $filename . '"');
+            $this->header(Header::Expires, '0');
+            $this->header(Header::CacheControl, 'must-revalidate');
+            $this->header(Header::Pragma, 'public');
+            $this->header(Header::ContentLength, filesize($file_path));
             header($this->status);
             foreach ($this->headers as $key => $value) {
                 header("$key: $value");
             }
-            if ($this->method != 'HEAD') {
+            if ($this->method != Method::HEAD) {
                 readfile($file_path);
             }
         }
@@ -364,15 +383,15 @@ class Response
         if (file_exists($file_path)) {
             $this->status();
             // TODO: we want to guess the mime type
-            // $this->header('content-type', 'application/octet-stream');
+            // $this->header(Header::ContentType, 'application/octet-stream');
             // TODO: we want to have more control over these headers
-            $this->header('cache-control', 'public, max-age=0');
-            $this->header('content-length', filesize($file_path));
+            $this->header(Header::CacheControl, 'public, max-age=0');
+            $this->header(Header::ContentLength, filesize($file_path));
             header($this->status);
             foreach ($this->headers as $key => $value) {
                 header("$key: $value");
             }
-            if ($this->method != 'HEAD') {
+            if ($this->method != Method::HEAD) {
                 readfile($file_path);
             }
         }
@@ -392,25 +411,25 @@ class Ruta
     /** It handles `GET` requests. */
     public static function get(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'GET', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::GET, $class_method_or_func);
     }
 
     /** It handles `HEAD` requests. */
     public static function head(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'HEAD', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::HEAD, $class_method_or_func);
     }
 
     /** It handles `POST` requests. */
     public static function post(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'POST', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::POST, $class_method_or_func);
     }
 
     /** It handles `PUT` requests. */
     public static function put(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'PUT', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::PUT, $class_method_or_func);
     }
 
     /** It handles `DELETE` requests. */
@@ -422,19 +441,19 @@ class Ruta
     /** It handles `CONNECT` requests. */
     public static function connect(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'CONNECT', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::CONNECT, $class_method_or_func);
     }
 
     /** It handles `OPTIONS` requests. */
     public static function options(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'OPTIONS', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::OPTIONS, $class_method_or_func);
     }
 
     /** It handles `TRACE` requests. */
     public static function trace(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'TRACE', $class_method_or_func);
+        self::match_route_and_delegate($path, Method::TRACE, $class_method_or_func);
     }
 
     private function __construct()

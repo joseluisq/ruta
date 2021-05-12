@@ -14,7 +14,7 @@ Ruta::put('/home/hola', function (Request $req, Response $res, array $args) {
 });
 Ruta::post('/home/{path}', function (Request $req, Response $res, array $args) {
     $res
-        ->status(200)
+        ->status()
         ->header('X-Header-One', 'Header Value 1')
         ->header('X-Header-Two', 'Header Value 2')
         ->json(['some_data' => 223424234]);
