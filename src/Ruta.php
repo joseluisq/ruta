@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of Ruta.
+ *
+ * (c) Jose Quintana <joseluisq.net>
+ *
+ * This source file is subject to the Apache 2.0 and MIT licenses which are bundled
+ * with this source code in the files LICENSE-APACHE and LICENSE-MIT respectively.
+ */
+
+namespace Ruta;
+
 // It defines HTTP Status codes.
 class Status
 {
@@ -335,7 +346,7 @@ class Request
     }
 
     /** It gets the body data of a `xml` content type request. */
-    public function xml(): SimpleXMLElement|null
+    public function xml(): \SimpleXMLElement|null
     {
         $xml = null;
         if (str_starts_with($this->content_type, 'application/xml')) {
@@ -599,10 +610,10 @@ class Ruta
         $uri = trim(urldecode($request_uri));
         $method = trim($request_method);
         if (empty($uri)) {
-            throw new InvalidArgumentException('HTTP request uri is not provided.');
+            throw new \InvalidArgumentException('HTTP request uri is not provided.');
         }
         if (empty($method)) {
-            throw new InvalidArgumentException('HTTP request method is not provided.');
+            throw new \InvalidArgumentException('HTTP request method is not provided.');
         }
         self::$uri = $uri;
         self::$path = self::parse_request_path($uri);
@@ -629,7 +640,7 @@ class Ruta
         }
         if (is_array($class_method_or_func)) {
             if (!count($class_method_or_func) === 2) {
-                throw new InvalidArgumentException('Provided value is not a valid class and method pair.');
+                throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
             }
             list($class_name, $method) = $class_method_or_func;
             $class_method = [new $class_name(), $method];
@@ -637,7 +648,7 @@ class Ruta
                 call_user_func_array($class_method, [self::create_request(), self::create_response(), $args]);
                 return;
             }
-            throw new InvalidArgumentException('Provided class is not defined or its method is not callable.');
+            throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
         }
         $class_method_or_func(self::create_request(), self::create_response(), $args);
     }

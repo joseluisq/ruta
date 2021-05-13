@@ -1,9 +1,14 @@
 <?php
+
 // Routing examples
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require '../../../src/Ruta.php';
+
+use Ruta\Ruta;
+use Ruta\Request;
+use Ruta\Response;
 
 // 1. Using callbacks
 Ruta::get('/home/hola', function (Request $req, Response $res, array $args) {
