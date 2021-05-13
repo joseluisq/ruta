@@ -76,7 +76,7 @@ class Status
         Status::SwitchingProtocols => 'Switching Protocols',
         Status::Processing => 'Processing',
         Status::EarlyHints => 'Early Hints',
-    
+
         Status::OK => 'OK',
         Status::Created => 'Created',
         Status::Accepted => 'Accepted',
@@ -87,7 +87,7 @@ class Status
         Status::MultiStatus => 'Multi-Status',
         Status::AlreadyReported => 'Already Reported',
         Status::IMUsed => 'IM Used',
-    
+
         Status::MultipleChoices => 'Multiple Choices',
         Status::MovedPermanently => 'Moved Permanently',
         Status::Found => 'Found',
@@ -96,7 +96,7 @@ class Status
         Status::UseProxy => 'Use Proxy',
         Status::TemporaryRedirect => 'Temporary Redirect',
         Status::PermanentRedirect => 'Permanent Redirect',
-    
+
         Status::BadRequest => 'Bad Request',
         Status::Unauthorized => 'Unauthorized',
         Status::PaymentRequired => 'Payment Required',
@@ -126,7 +126,7 @@ class Status
         Status::TooManyRequests => 'Too Many Requests',
         Status::RequestHeaderFieldsTooLarge => 'Request Header Fields Too Large',
         Status::UnavailableForLegalReasons => 'Unavailable For Legal Reasons',
-    
+
         Status::InternalServerError => 'Internal Server Error',
         Status::NotImplemented => 'Not Implemented',
         Status::BadGateway => 'Bad Gateway',
@@ -139,10 +139,11 @@ class Status
         Status::NotExtended => 'Not Extended',
         Status::NetworkAuthenticationRequired => 'Network Authentication Required',
     ];
-    
+
     // It returns a text for the HTTP status code.
     // An empty string is returned if the code is unknown.
-    public static function text(int $status): string {
+    public static function text(int $status): string
+    {
         return self::STATUS_MAP[$status] ?? '';
     }
 }
@@ -367,7 +368,7 @@ class Response
     {
     }
 
-    /** It adds the HTTP status. */
+    /** It adds or updates the HTTP status. */
     public function status(int $status_code = Status::OK)
     {
         $status_str = Status::text($status_code);
@@ -377,7 +378,7 @@ class Response
         return $this;
     }
 
-    /** It appends a HTTP header. */
+    /** It adds or updates a HTTP header. */
     public function header(string $key, string $value)
     {
         $key = strtolower(trim($key));
@@ -385,11 +386,31 @@ class Response
         return $this;
     }
 
+    /** It outputs a HTTP response in plain text format. */
+    public function text(string $data)
+    {
+        $this->header(Header::ContentType, 'text/plain;charset=utf-8');
+        $this->output($data);
+    }
+
     /** It outputs a HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512)
     {
         $this->header(Header::ContentType, 'application/json');
-        $data = json_encode($data, $flags, $depth);
+        $this->output(json_encode($data, $flags, $depth));
+    }
+
+    /** It outputs a HTTP response in XML format. */
+    public function xml(string $data)
+    {
+        $this->header(Header::ContentType, 'application/xml');
+        $this->output($data);
+    }
+
+    /** It outputs a HTTP response in HTML format. */
+    public function html(string $data)
+    {
+        $this->header(Header::ContentType, 'text/html;charset=utf-8');
         $this->output($data);
     }
 
@@ -398,80 +419,110 @@ class Response
     {
         $this->status($redirect_status);
         $this->header(Header::Location, $url);
-        $this->output('', false);
+        $this->header(Header::ContentLength, '0');
+        $this->apply_status_headers();
     }
 
-    /** It outputs the corresponding response using given raw data. */
-    private function output(string $data, bool $print_data = true)
+    /** It outputs the corresponding response using a given raw data. */
+    private function output(string $data)
     {
-        header($this->status);
         $this->header(Header::ContentLength, strlen($data));
-        foreach ($this->headers as $key => $value) {
-            header("$key: $value");
-        }
-        if ($print_data && $this->method != Method::HEAD) {
+        $this->apply_status_headers();
+        if ($this->method != Method::HEAD) {
             echo $data;
         }
     }
 
     /** It creates a response that forces to download the file at a given path. */
-    public function download(string $file_path, string $name = '')
+    public function download(string $base_path, string $file_path, string $name = '')
     {
-        if (file_exists($file_path)) {
+        $file_path = self::sanitize_path($base_path, $file_path);
+        if (empty($file_path)) {
+            $this->status(Status::NotFound);
+            $this->apply_status_headers();
+            return;
+        }
+        if (is_file($file_path)) {
             $this->status();
-            // TODO: we want to guess the mime type
-            $this->header(Header::ContentType, 'application/octet-stream');
+            $this->header(Header::ContentType, self::guess_mime_type($file_path));
             $filename = empty($name) ? basename($file_path) : $name;
             $this->header(Header::ContentDisposition, 'attachment; filename="' . $filename . '"');
             $this->header(Header::Expires, '0');
             $this->header(Header::CacheControl, 'must-revalidate');
             $this->header(Header::Pragma, 'public');
             $this->header(Header::ContentLength, filesize($file_path));
-            header($this->status);
-            foreach ($this->headers as $key => $value) {
-                header("$key: $value");
-            }
+            $this->apply_status_headers();
             if ($this->method != Method::HEAD) {
                 readfile($file_path);
             }
+            return;
         }
-        // TODO: respond with a 404
+        // Otherwise respond with a 404
+        $this->status(Status::NotFound);
+        $this->apply_status_headers();
     }
 
     /** It creates a response that serves a file at a given path. */
     public function file(string $base_path, string $file_path)
     {
-        // Protect against path/directory traversal
+        $file_path = self::sanitize_path($base_path, $file_path);
+        if (empty($file_path)) {
+            $this->status(Status::NotFound);
+            $this->apply_status_headers();
+            return;
+        }
+        if (is_file($file_path)) {
+            $this->header(Header::ContentType, self::guess_mime_type($file_path));
+            // TODO: we want to have more flexibility over these cache-control headers
+            $this->header(Header::CacheControl, 'public, max-age=0');
+            $this->header(Header::ContentLength, filesize($file_path));
+            $this->apply_status_headers();
+            if ($this->method != Method::HEAD) {
+                readfile($file_path);
+            }
+            return;
+        }
+        // Otherwise respond with a 404
+        $this->status(Status::NotFound);
+        $this->apply_status_headers();
+    }
+
+    /** It applies the current HTTP status and the available headers. */
+    private function apply_status_headers()
+    {
+        header($this->status);
+        foreach ($this->headers as $key => $value) {
+            header("$key: $value");
+        }
+    }
+
+    /** It sanitizes a specific file path protecting it against path/directory traversal. */
+    private static function sanitize_path(string $base_path, string $file_path): string|null
+    {
         $path = [];
         $segs = explode('/', urldecode(trim($file_path)));
         foreach ($segs as $seg) {
             if (str_starts_with($seg, '..')) {
-                // TODO: rejecting segment starting with '..'
-                // Respond with a 404
+                // Rejecting segment starting with '..'
+                return null;
             } elseif (str_starts_with($seg, '\\')) {
-                // TODO: rejecting segment containing with backslash (\\)
-                // Respond with a 404
+                // Rejecting segment containing with backslash (\\)
+                return null;
             } else {
                 array_push($path, $seg);
             }
         }
-        $file_path = "$base_path/" . implode('/', $path);
-        if (file_exists($file_path)) {
-            $this->status();
-            // TODO: we want to guess the mime type
-            // $this->header(Header::ContentType, 'application/octet-stream');
-            // TODO: we want to have more control over these headers
-            $this->header(Header::CacheControl, 'public, max-age=0');
-            $this->header(Header::ContentLength, filesize($file_path));
-            header($this->status);
-            foreach ($this->headers as $key => $value) {
-                header("$key: $value");
-            }
-            if ($this->method != Method::HEAD) {
-                readfile($file_path);
-            }
+        return "$base_path/" . implode('/', $path);
+    }
+
+    /** It guesses the mime type an existing file or returns a default `application/octet-stream` instead. */
+    private static function guess_mime_type(string $file_path)
+    {
+        $mime = mime_content_type($file_path);
+        if (!$mime) {
+            return 'application/octet-stream';
         }
-        // TODO: respond with a 404
+        return $mime;
     }
 }
 
