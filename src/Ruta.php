@@ -172,7 +172,7 @@ class Method
     public const TRACE = 'TRACE';
 }
 
-// It defines a HTTP Header map.
+// It defines an HTTP Header map.
 class Header
 {
     public const Accept = 'accept';
@@ -350,10 +350,7 @@ class Request
     {
         $xml = null;
         if (str_starts_with($this->content_type, 'application/xml')) {
-            $xml = simplexml_load_string($this->raw_data);
-            if (!$xml) {
-                $xml = null;
-            }
+            $xml = simplexml_load_string($this->raw_data) ?: null;
         }
         return $xml;
     }

@@ -1,6 +1,10 @@
 dev:
-	@php -v
-	@php -S localhost:8088 -t example/nginx/public
+	@docker run --rm \
+		--name ruta \
+		-p 8088:8088 \
+		-v $(PWD)/example/nginx/public:/usr/share/nginx/html/ \
+      	-v $(PWD)/src:/usr/src \
+		joseluisq/php-fpm:8.1 sh -c "php -S 0.0.0.0:8088 -t /usr/share/nginx/html/"
 .PHONY: dev
 
 compose:
