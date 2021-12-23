@@ -386,36 +386,39 @@ class Response
         return $this;
     }
 
-    /** It adds or updates a HTTP header. */
+    /** It adds or updates an HTTP header. */
     public function header(string $key, string $value)
     {
-        $key = strtolower(trim($key));
-        $this->headers[$key] = $value;
+        $key = trim($key);
+        if (!empty($key)) {
+            $key = strtolower($key);
+            $this->headers[$key] = trim($value);
+        }
         return $this;
     }
 
-    /** It outputs a HTTP response in plain text format. */
+    /** It outputs an HTTP response in plain text format. */
     public function text(string $data)
     {
         $this->header(Header::ContentType, 'text/plain;charset=utf-8');
         $this->output($data);
     }
 
-    /** It outputs a HTTP response in JSON format. */
+    /** It outputs an HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512)
     {
         $this->header(Header::ContentType, 'application/json');
         $this->output(json_encode($data, $flags, $depth));
     }
 
-    /** It outputs a HTTP response in XML format. */
+    /** It outputs an HTTP response in XML format. */
     public function xml(string $data)
     {
         $this->header(Header::ContentType, 'application/xml');
         $this->output($data);
     }
 
-    /** It outputs a HTTP response in HTML format. */
+    /** It outputs an HTTP response in HTML format. */
     public function html(string $data)
     {
         $this->header(Header::ContentType, 'text/html;charset=utf-8');
@@ -523,14 +526,10 @@ class Response
         return "$base_path/" . implode('/', $path);
     }
 
-    /** It guesses the mime type an existing file or returns a default `application/octet-stream` instead. */
+    /** It guesses the mime type of an existing file or returns a default `application/octet-stream` instead. */
     private static function guess_mime_type(string $file_path)
     {
-        $mime = mime_content_type($file_path);
-        if (!$mime) {
-            return 'application/octet-stream';
-        }
-        return $mime;
+        return mime_content_type($file_path) ?: 'application/octet-stream';
     }
 }
 
