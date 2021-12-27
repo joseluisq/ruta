@@ -29,7 +29,8 @@ class HomeCtrl
     public function index(Request $req, Response $res, array $args)
     {
         // 2.1 $args contains route placeholder values
-        if ($args['path1']) {
+        if (isset($args['path1'])) {
+            // do something...
         }
         // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
@@ -47,20 +48,14 @@ class HomeCtrl
 
 Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
 
-// [Fri Dec 17 23:10:28 2021] 172.17.0.1:48748 Accepted
-// [Fri Dec 17 23:10:28 2021] 172.17.0.1:48746 Closed without sending a request; it was probably just an unused speculative preconnection
-// [Fri Dec 17 23:10:28 2021] 172.17.0.1:48746 Closing
-// [Fri Dec 17 23:10:28 2021] 172.17.0.1:48748 [200]: POST /home/xyz/some2
-// [Fri Dec 17 23:10:28 2021] 172.17.0.1:48748 Closing
 Ruta::post('/home/{path3}/some2', function (Request $req, Response $res, array $args) {
     $res
         ->status()
         ->json(['post_data' => 11010101010]);
 });
 
-Ruta::post('/home/{path}', function (Request $req, Response $res, array $args) {
+Ruta::post('/home/{path}', function (Request $req, Response $res) {
     $res
-        ->status()
         ->header('X-Header-One', 'Header Value 1')
         ->header('X-Header-Two', 'Header Value 2')
         ->json(['some_data' => 223424234]);

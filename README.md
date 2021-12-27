@@ -1,10 +1,10 @@
 # Ruta
 
-> A single-file and lightweight HTTP routing library for PHP. (WIP)
+> A lightweight single-file HTTP routing library for PHP. (WIP)
 
 ## Requirements
 
-[PHP 8.0+](https://www.php.net/releases/8.0/en.php)
+[PHP 8.0](https://www.php.net/releases/8.0/en.php) or newer.
 
 ## Usage
 
@@ -15,19 +15,12 @@ use Ruta\Ruta;
 use Ruta\Request;
 use Ruta\Response;
 
-// 1. Callback style
+// 1. Using callbacks
 Ruta::get('/home/hola', function (Request $req, Response $res, array $args) {
     $res->json(['data' => 'Hello World!']);
 });
 Ruta::get('/home/hola/redirect', function (Request $req, Response $res, array $args) {
     $res->redirect('/home/aaa/some/bbb');
-});
-Ruta::put('/home/{path}', function (Request $req, Response $res, array $args) {
-    $res
-        ->status()
-        ->header('X-Header-One', 'Header Value 1')
-        ->header('X-Header-Two', 'Header Value 2')
-        ->json(['timestamp' => time()]);
 });
 Ruta::get('/home/files/{file}', function (Request $req, Response $res, array $args) {
     $base_path = getcwd();
@@ -35,29 +28,44 @@ Ruta::get('/home/files/{file}', function (Request $req, Response $res, array $ar
     $res->file($base_path, $file_path);
 });
 
-// 2. Class-method style
+// 2. Using a class and method
 class HomeCtrl
 {
     public function index(Request $req, Response $res, array $args)
     {
-        // 2.1 $args contains route placeholder values
-        if ($args['path1']) {
+        // 2.1 $args contains route placeholder(s) values
+        if (isset($args['path1'])) {
+            // do something...
         }
-        // 2.2. It gets the data provided via `multipart/form-data` 
+        // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
-        // 2.3. It gets the data provided via `application/x-www-form-urlencoded` 
+        // 2.3. Get data provided via `application/x-www-form-urlencoded` 
         $data = $req->urlencoded();
-        // 2.4. It gets the data provided via `application/json`
+        // 2.4. Get data provided via `application/json`
         $data = $req->json();
-        // 2.5. It gets the data provided via `application/xml`
+        // 2.5. Get data provided via `application/xml`
         $data = $req->xml();
-        // 2.6. It gets the query data
+        // 2.6. Get query data
         $data = $req->query();
-        // Note: also other methods like xml(), text() and html()
-        $res->json(['data' => 'Hi from a class method!']);
+
+        $res->json(['data' => 'Message from a class!']);
     }
 }
-Ruta::post('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
+
+Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
+
+Ruta::post('/home/{path3}/some2', function (Request $req, Response $res, array $args) {
+    $res
+        ->status()
+        ->json(['post_data' => 11010101010]);
+});
+
+Ruta::post('/home/{path}', function (Request $req, Response $res) {
+    $res
+        ->header('X-Header-One', 'Header Value 1')
+        ->header('X-Header-Two', 'Header Value 2')
+        ->json(['some_data' => 223424234]);
+});
 ```
 
 ## Code example
@@ -65,13 +73,13 @@ Ruta::post('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
 File: [example/nginx/public/index.php](example/nginx/public/index.php)
 
 ```sh
-# Run example using the PHP built-in server
-make dev
+# Or run example using Docker + Nginx server
+make compose-up
 ```
 
 ```sh
-# Or run example using Docker + Nginx server
-make compose
+# Run example using the PHP built-in server
+make container-dev
 ```
 
 Now navigate for example to [http://localhost:8088/home/hola](http://localhost:8088/home/hola)

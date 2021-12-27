@@ -391,6 +391,7 @@ class Response
     {
         $key = trim($key);
         if (!empty($key)) {
+            // TODO: Add only valid char keys
             $key = strtolower($key);
             $this->headers[$key] = trim($value);
         }
@@ -545,49 +546,49 @@ class Ruta
     /** It handles `GET` requests. */
     public static function get(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::GET, $class_method_or_func);
+        self::match_route_delegate($path, Method::GET, $class_method_or_func);
     }
 
     /** It handles `HEAD` requests. */
     public static function head(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::HEAD, $class_method_or_func);
+        self::match_route_delegate($path, Method::HEAD, $class_method_or_func);
     }
 
     /** It handles `POST` requests. */
     public static function post(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::POST, $class_method_or_func);
+        self::match_route_delegate($path, Method::POST, $class_method_or_func);
     }
 
     /** It handles `PUT` requests. */
     public static function put(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::PUT, $class_method_or_func);
+        self::match_route_delegate($path, Method::PUT, $class_method_or_func);
     }
 
     /** It handles `DELETE` requests. */
     public static function delete(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, 'DELETE', $class_method_or_func);
+        self::match_route_delegate($path, 'DELETE', $class_method_or_func);
     }
 
     /** It handles `CONNECT` requests. */
     public static function connect(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::CONNECT, $class_method_or_func);
+        self::match_route_delegate($path, Method::CONNECT, $class_method_or_func);
     }
 
     /** It handles `OPTIONS` requests. */
     public static function options(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::OPTIONS, $class_method_or_func);
+        self::match_route_delegate($path, Method::OPTIONS, $class_method_or_func);
     }
 
     /** It handles `TRACE` requests. */
     public static function trace(string $path, callable|array $class_method_or_func)
     {
-        self::match_route_and_delegate($path, Method::TRACE, $class_method_or_func);
+        self::match_route_delegate($path, Method::TRACE, $class_method_or_func);
     }
 
     private function __construct()
@@ -612,7 +613,7 @@ class Ruta
             throw new \InvalidArgumentException('HTTP request method is not provided.');
         }
         self::$uri = $uri;
-        self::$path = self::parse_request_path($uri);
+        self::$path = self::path_as_segments($uri);
         self::$query = $_GET;
         self::$method = $method;
         if (self::$instance) {
@@ -622,7 +623,7 @@ class Ruta
         return self::$instance;
     }
 
-    private static function match_route_and_delegate(string $path, string $method, callable|array $class_method_or_func)
+    private static function match_route_delegate(string $path, string $method, callable|array $class_method_or_func)
     {
         if (is_null(self::$instance)) {
             self::new();
@@ -630,7 +631,7 @@ class Ruta
         if (self::$method !== $method) {
             return;
         }
-        list($match, $args) = self::match_request_path_and_query($path);
+        list($match, $args) = self::match_path_query($path);
         if (!$match) {
             return;
         }
@@ -659,25 +660,26 @@ class Ruta
         return new Response(self::$method);
     }
 
-    private static function match_request_path_and_query(string $path)
+    private static function match_path_query(string $path)
     {
         $match = true;
         $args = [];
-        $segs = self::parse_request_path($path);
-        $segs_count = count($segs);
+        $segs_def = self::path_as_segments($path);
+        $segs_def_count = count($segs_def);
         $has_placeholder = false;
-        // TODO: check also query
-        for ($i = 0; $i < $segs_count; $i++) {
+
+        // TODO: check also query uri
+        for ($i = 0; $i < $segs_def_count; $i++) {
             if (!isset(self::$path[$i])) {
                 $match = false;
                 break;
             }
             $seg_in = self::$path[$i];
-            $seg = $segs[$i];
-            if ($seg !== $seg_in) {
-                // If it contains a placeholder and it passes validation
-                if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
-                    $key = trim(str_replace('}', '', str_replace('{', '', $seg)));
+            $seg_def = $segs_def[$i];
+            if ($seg_def !== $seg_in) {
+                // 1. placeholder
+                if (str_starts_with($seg_def, '{') && str_ends_with($seg_def, '}')) {
+                    $key = trim(substr(substr($seg_def, 0), 0, -1));
                     if (!empty($key)) {
                         $args[$key] = $seg_in;
                         $has_placeholder = true;
@@ -688,13 +690,13 @@ class Ruta
                 break;
             }
         }
-        if ($match && !$has_placeholder && $segs_count < count(self::$path)) {
+        if ($match && !$has_placeholder && $segs_def_count < count(self::$path)) {
             $match = false;
         }
         return [$match, $args];
     }
 
-    private static function parse_request_path(string $path): array
+    private static function path_as_segments(string $path): array
     {
         $path = trim(parse_url($path, PHP_URL_PATH));
         $segs = [];
