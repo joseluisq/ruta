@@ -11,29 +11,38 @@
 ```php
 <?php
 
-use Ruta\Ruta;
-use Ruta\Request;
-use Ruta\Response;
-
-// 1. Using callbacks
-Ruta::get('/home/hola', function (Request $req, Response $res, array $args) {
+// 1. Callback style
+Ruta::get('/home/hola', function (Response $res) {
     $res->json(['data' => 'Hello World!']);
 });
-Ruta::get('/home/hola/redirect', function (Request $req, Response $res, array $args) {
+Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
 });
-Ruta::get('/home/files/{file}', function (Request $req, Response $res, array $args) {
+Ruta::get('/home/files/{file}', function (Response $res, array $args) {
     $base_path = getcwd();
     $file_path = $args['file'];
     $res->file($base_path, $file_path);
 });
 
-// 2. Using a class and method
+Ruta::post('/home/{path3}/some2', function (Response $res) {
+    $res
+        ->status()
+        ->json(['post_data' => 11010101010]);
+});
+
+Ruta::post('/home/{path}', function (Response $res) {
+    $res
+        ->header('X-Header-One', 'Header Value 1')
+        ->header('X-Header-Two', 'Header Value 2')
+        ->json(['some_data' => 223424234]);
+});
+
+// 2. class/method style
 class HomeCtrl
 {
     public function index(Request $req, Response $res, array $args)
     {
-        // 2.1 $args contains route placeholder(s) values
+        // 2.1 $args contains route placeholder values
         if (isset($args['path1'])) {
             // do something...
         }
@@ -47,25 +56,11 @@ class HomeCtrl
         $data = $req->xml();
         // 2.6. Get query data
         $data = $req->query();
-
         $res->json(['data' => 'Message from a class!']);
     }
 }
 
 Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
-
-Ruta::post('/home/{path3}/some2', function (Request $req, Response $res, array $args) {
-    $res
-        ->status()
-        ->json(['post_data' => 11010101010]);
-});
-
-Ruta::post('/home/{path}', function (Request $req, Response $res) {
-    $res
-        ->header('X-Header-One', 'Header Value 1')
-        ->header('X-Header-Two', 'Header Value 2')
-        ->json(['some_data' => 223424234]);
-});
 ```
 
 ## Code example

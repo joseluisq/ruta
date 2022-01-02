@@ -635,19 +635,67 @@ class Ruta
         if (!$match) {
             return;
         }
+
+        // Handle class/method callable
         if (is_array($class_method_or_func)) {
             if (!count($class_method_or_func) === 2) {
                 throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
             }
             list($class_name, $method) = $class_method_or_func;
-            $class_method = [new $class_name(), $method];
-            if (is_callable($class_method, false)) {
-                call_user_func_array($class_method, [self::create_request(), self::create_response(), $args]);
+            $class_obj = new $class_name();
+            if (is_callable([$class_obj, $method], false)) {
+                self::call_user_method_array($class_obj, $method, $args);
                 return;
             }
             throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
         }
-        $class_method_or_func(self::create_request(), self::create_response(), $args);
+
+        // Handle function callable
+        self::call_user_func_array($class_method_or_func, $args);
+    }
+
+    private static function call_user_method_array(object $class_obj, string $method, array $args)
+    {
+        $fn = new \ReflectionMethod($class_obj, $method);
+        $method_args = [];
+        foreach ($fn->getParameters() as $param) {
+            switch ($param->getType()) {
+                case null:
+                    break;
+                case 'Ruta\Request':
+                    $method_args[] = self::create_request();
+                    break;
+                case 'Ruta\Response':
+                    $method_args[] = self::create_response();
+                    break;
+                case 'array':
+                    $method_args[] = $args;
+                    break;
+            }
+        }
+        call_user_func_array([$class_obj, $method], $method_args);
+    }
+
+    private static function call_user_func_array(callable $user_func, array $args)
+    {
+        $fn = new \ReflectionFunction($user_func);
+        $user_func_args = [];
+        foreach ($fn->getParameters() as $param) {
+            switch ($param->getType()) {
+                case null:
+                    break;
+                case 'Ruta\Request':
+                    $user_func_args[] = self::create_request();
+                    break;
+                case 'Ruta\Response':
+                    $user_func_args[] = self::create_response();
+                    break;
+                case 'array':
+                    $user_func_args[] = $args;
+                    break;
+            }
+        }
+        call_user_func_array($user_func, $user_func_args);
     }
 
     private static function create_request(): Request
