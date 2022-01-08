@@ -542,6 +542,7 @@ class Ruta
     private static string $method = '';
     private static array $path = [];
     private static array $query = [];
+    private static \Closure|array $not_found_class_method_or_func;
 
     /** It handles `GET` requests. */
     public static function get(string $path, callable|array $class_method_or_func)
@@ -589,6 +590,12 @@ class Ruta
     public static function trace(string $path, callable|array $class_method_or_func)
     {
         self::match_route_delegate($path, Method::TRACE, $class_method_or_func);
+    }
+
+    /** It handles 404 not found routes. */
+    public static function not_found(callable|array $class_method_or_func)
+    {
+        self::$not_found_class_method_or_func = $class_method_or_func;
     }
 
     private function __construct()
@@ -654,7 +661,7 @@ class Ruta
         self::call_user_func_array($class_method_or_func, $args);
     }
 
-    private static function call_user_method_array(object $class_obj, string $method, array $args)
+    private static function call_user_method_array(object $class_obj, string $method, array $args = [])
     {
         $fn = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
@@ -663,10 +670,10 @@ class Ruta
                 case null:
                     break;
                 case 'Ruta\Request':
-                    $method_args[] = self::create_request();
+                    $method_args[] = self::new_request();
                     break;
                 case 'Ruta\Response':
-                    $method_args[] = self::create_response();
+                    $method_args[] = self::new_response();
                     break;
                 case 'array':
                     $method_args[] = $args;
@@ -676,7 +683,7 @@ class Ruta
         call_user_func_array([$class_obj, $method], $method_args);
     }
 
-    private static function call_user_func_array(callable $user_func, array $args)
+    private static function call_user_func_array(callable $user_func, array $args = [])
     {
         $fn = new \ReflectionFunction($user_func);
         $user_func_args = [];
@@ -685,10 +692,10 @@ class Ruta
                 case null:
                     break;
                 case 'Ruta\Request':
-                    $user_func_args[] = self::create_request();
+                    $user_func_args[] = self::new_request();
                     break;
                 case 'Ruta\Response':
-                    $user_func_args[] = self::create_response();
+                    $user_func_args[] = self::new_response();
                     break;
                 case 'array':
                     $user_func_args[] = $args;
@@ -698,12 +705,12 @@ class Ruta
         call_user_func_array($user_func, $user_func_args);
     }
 
-    private static function create_request(): Request
+    private static function new_request(): Request
     {
         return new Request(self::$uri, self::$method, self::$path, self::$query);
     }
 
-    private static function create_response(): Response
+    private static function new_response(): Response
     {
         return new Response(self::$method);
     }
@@ -766,5 +773,32 @@ class Ruta
             $segs[$j] .= $path[$i];
         }
         return $segs;
+    }
+
+    public function __destruct()
+    {
+        // Handle 404 not found routes
+        if (isset(self::$not_found_class_method_or_func)) {
+            // Handle class/method callable
+            if (is_array(self::$not_found_class_method_or_func)) {
+                if (!count(self::$not_found_class_method_or_func) === 2) {
+                    throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
+                }
+                list($class_name, $method) = self::$not_found_class_method_or_func;
+                $class_obj = new $class_name();
+                if (is_callable([$class_obj, $method], false)) {
+                    self::call_user_method_array($class_obj, $method);
+                    return;
+                }
+                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+            }
+
+            // Handle function callable
+            self::call_user_func_array(self::$not_found_class_method_or_func);
+        } else {
+            $res = self::new_response();
+            $res->status(Status::NotFound);
+            $res->text("404 Not Found");
+        }
     }
 }

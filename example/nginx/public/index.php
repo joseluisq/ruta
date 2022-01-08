@@ -45,6 +45,7 @@ class HomeCtrl
         if (isset($args['path1'])) {
             // do something...
         }
+
         // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
         // 2.3. Get data provided via `application/x-www-form-urlencoded` 
@@ -55,8 +56,17 @@ class HomeCtrl
         $data = $req->xml();
         // 2.6. Get query data
         $data = $req->query();
+
         $res->json(['data' => 'Message from a class!']);
+    }
+
+    public function not_found(Response $res)
+    {
+        $res->text("404 - Page Not Found!");
     }
 }
 
 Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
+
+// 3. Handle 404 not found routes
+Ruta::not_found([HomeCtrl::class, 'not_found']);
