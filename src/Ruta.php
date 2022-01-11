@@ -82,7 +82,7 @@ class Status
     public const NotExtended = 510; // RFC 2774, 7
     public const NetworkAuthenticationRequired = 511; // RFC 6585, 6
 
-    public const STATUS_MAP = [
+    private const STATUS_MAP = [
         Status::Continue => 'Continue',
         Status::SwitchingProtocols => 'Switching Protocols',
         Status::Processing => 'Processing',
@@ -153,9 +153,9 @@ class Status
 
     // It returns a text for the HTTP status code.
     // An empty string is returned if the code is unknown.
-    public static function text(int $status): string
+    public static function text(int $status_code): string
     {
-        return self::STATUS_MAP[$status] ?? '';
+        return self::STATUS_MAP[$status_code] ?? '';
     }
 }
 
@@ -272,8 +272,7 @@ class Request
     ) {
         $this->proto = $_SERVER['SERVER_PROTOCOL'] ?? '';
         $this->content_type = trim($_SERVER['HTTP_CONTENT_TYPE'] ?? '');
-        // TODO: prepare headers
-        // $req->header = [];
+        $this->headers = getallheaders();
         switch ($method) {
             case Method::POST:
             case Method::PUT:
@@ -283,10 +282,19 @@ class Request
         }
     }
 
-    /** It gets the request headers. */
+    /** It gets all the request headers. */
     public function headers(): array
     {
         return $this->headers;
+    }
+
+    /** It gets a single header value by key. It returns an empty string when not found. */
+    public function header(string $key): string
+    {
+        if (empty($key)) {
+            return '';
+        }
+        return $this->headers[$key] ?? '';
     }
 
     /** It gets the request protocol and version. */
@@ -369,7 +377,7 @@ class Request
 // It represents a server response.
 class Response
 {
-    private string $status = 'HTTP/1.1 200 OK';
+    private string $status = '';
     private array $headers = [];
 
     public function __construct(public string $method = '')
@@ -408,14 +416,14 @@ class Response
     /** It outputs an HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512)
     {
-        $this->header(Header::ContentType, 'application/json');
+        $this->header(Header::ContentType, 'application/json;charset=utf-8');
         $this->output(json_encode($data, $flags, $depth));
     }
 
     /** It outputs an HTTP response in XML format. */
     public function xml(string $data)
     {
-        $this->header(Header::ContentType, 'application/xml');
+        $this->header(Header::ContentType, 'application/xml;charset=utf-8');
         $this->output($data);
     }
 
@@ -502,10 +510,18 @@ class Response
     /** It applies the current HTTP status and the available headers. */
     private function apply_status_headers()
     {
+        // Apply HTTP status
+        if (empty($this->status)) {
+            $this->status(Status::OK);
+        }
         header($this->status);
+        $this->status = '';
+
+        // Apply HTTP common/custom headers
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
+        $this->headers = [];
     }
 
     /** It sanitizes a specific file path protecting it against path/directory traversal. */
@@ -543,6 +559,7 @@ class Ruta
     private static array $path = [];
     private static array $query = [];
     private static \Closure|array $not_found_class_method_or_func;
+    private static bool $is_not_found = false;
 
     /** It handles `GET` requests. */
     public static function get(string $path, callable|array $class_method_or_func)
@@ -636,9 +653,13 @@ class Ruta
             self::new();
         }
         if (self::$method !== $method) {
+            // TODO: maybe reply with a "405 Method Not Allowed"
+            // but make suer to provide control for users
+            self::$is_not_found = true;
             return;
         }
         list($match, $args) = self::match_path_query($path);
+        self::$is_not_found = !$match;
         if (!$match) {
             return;
         }
@@ -652,13 +673,16 @@ class Ruta
             $class_obj = new $class_name();
             if (is_callable([$class_obj, $method], false)) {
                 self::call_user_method_array($class_obj, $method, $args);
-                return;
+                // Terminate when route found and delegated
+                exit;
             }
             throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
         }
 
         // Handle function callable
         self::call_user_func_array($class_method_or_func, $args);
+        // Terminate when route found and delegated
+        exit;
     }
 
     private static function call_user_method_array(object $class_obj, string $method, array $args = [])
@@ -778,6 +802,9 @@ class Ruta
     public function __destruct()
     {
         // Handle 404 not found routes
+        if (!self::$is_not_found) {
+            return;
+        }
         if (isset(self::$not_found_class_method_or_func)) {
             // Handle class/method callable
             if (is_array(self::$not_found_class_method_or_func)) {
@@ -798,7 +825,7 @@ class Ruta
         } else {
             $res = self::new_response();
             $res->status(Status::NotFound);
-            $res->text("404 Not Found");
+            $res->text(Status::text(Status::NotFound));
         }
     }
 }

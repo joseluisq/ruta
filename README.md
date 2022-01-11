@@ -9,11 +9,17 @@
 ## Usage
 
 ```php
-<?php
+use Ruta\Ruta;
+use Ruta\Request;
+use Ruta\Response;
+use Ruta\Status;
 
 // 1. Callback style
-Ruta::get('/home/hola', function (Response $res) {
-    $res->json(['data' => 'Hello World!']);
+Ruta::get('/home/hola', function (Request $req, Response $res) {
+    $res
+        ->json(
+            ['headers' => $req->headers()]
+        );
 });
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
@@ -25,9 +31,7 @@ Ruta::get('/home/files/{file}', function (Response $res, array $args) {
 });
 
 Ruta::post('/home/{path3}/some2', function (Response $res) {
-    $res
-        ->status()
-        ->json(['post_data' => 11010101010]);
+    $res->json(['post_data' => 11010101010]);
 });
 
 Ruta::post('/home/{path}', function (Response $res) {
@@ -49,21 +53,28 @@ class HomeCtrl
 
         // 2.2. Get data provided via `multipart/form-data` 
         $data = $req->multipart();
-        // 2.3. Get data provided via `application/x-www-form-urlencoded` 
+        // 2.3. Get all headers
+        $data = $req->headers();
+        // 2.4. Get a single header
+        $data = $req->header("Host");
+        // 2.5. Get data provided via `application/x-www-form-urlencoded` 
         $data = $req->urlencoded();
-        // 2.4. Get data provided via `application/json`
+        // 2.6. Get data provided via `application/json`
         $data = $req->json();
-        // 2.5. Get data provided via `application/xml`
+        // 2.7. Get data provided via `application/xml`
         $data = $req->xml();
-        // 2.6. Get query data
+        // 2.8. Get query data
         $data = $req->query();
-    
+
         $res->json(['data' => 'Message from a class!']);
     }
 
+    // Custom 404 reply
     public function not_found(Response $res)
     {
-        $res->text("404 - Page Not Found!");
+        $res
+            ->status(Status::NotFound)
+            ->text("404 - Page Not Found!");
     }
 }
 
