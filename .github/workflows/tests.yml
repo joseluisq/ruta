@@ -1,0 +1,31 @@
+name: Tests
+on: ['push', 'pull_request']
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        php: ['8.0', '8.1']
+        dependency-version: [prefer-lowest, prefer-stable]
+        parallel: ['', '--parallel']
+
+    name: PHP ${{ matrix.php }} - ${{ matrix.os }} - ${{ matrix.dependency-version }} - ${{ matrix.parallel }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        tools: composer:v2
+        coverage: none
+
+    - name: Install dependencies
+      run: composer update --${{ matrix.dependency-version }} --no-interaction --no-progress
+
+    - name: Unit tests
+      run: ./vendor/bin/pest --colors=always ${{ matrix.parallel }}

@@ -1,0 +1,52 @@
+{
+    "name": "joseluisq/ruta",
+    "type": "library",
+    "description": "A lightweight single-file HTTP routing library for PHP without external dependencies",
+    "license": [
+        "Apache-2.0",
+        "MIT"
+    ],
+    "authors": [
+        {
+            "name": "Jose Quintana",
+            "homepage": "https://github.com/joseluisq"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^1.21",
+        "pestphp/pest-plugin-parallel": "^1.0",
+        "pestphp/pest-dev-tools": "dev-master"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Ruta\\": "src/"
+        },
+        "files": [
+            "src/Ruta.php"
+        ]
+    },
+    
+    "prefer-stable": true,
+    "scripts": {
+        "lint": "PHP_CS_FIXER_IGNORE_ENV=true php-cs-fixer fix -v",
+        "test:lint": "PHP_CS_FIXER_IGNORE_ENV=true php-cs-fixer fix -v --dry-run",
+        "test:types": "phpstan analyse --ansi --memory-limit=-1 --debug",
+        "test:unit": "./vendor/bin/pest --colors=always",
+        "test:parallel": "exit 1",
+        "test:integration": "exit 1",
+        "update:snapshots": "exit 1",
+        "test": [
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ]
+    }
+}

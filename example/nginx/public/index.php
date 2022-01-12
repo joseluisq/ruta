@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 // Routing examples
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', '1');
 
 require '../../../src/Ruta.php';
 
+use Ruta\Header;
 use Ruta\Ruta;
 use Ruta\Request;
 use Ruta\Response;
@@ -14,9 +17,10 @@ use Ruta\Status;
 // 1. Callback style
 Ruta::get('/home/hola', function (Request $req, Response $res) {
     $res
-        ->json(
-            ['headers' => $req->headers()]
-        );
+        ->json([
+            'host' => $req->header(Header::Host),
+            'headers' => $req->headers(),
+        ]);
 });
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');

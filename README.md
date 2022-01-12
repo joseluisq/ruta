@@ -1,4 +1,4 @@
-# Ruta
+# Ruta <a href="https://github.com/joseluisq/ruta/actions/workflows/tests.yml" title="tests ci"><img src="https://github.com/joseluisq/ruta/actions/workflows/tests.yml/badge.svg?branch=master"></a>
 
 > A lightweight single-file HTTP routing library for PHP. (WIP)
 
@@ -9,6 +9,11 @@
 ## Usage
 
 ```php
+<?php
+
+declare(strict_types=1);
+
+use Ruta\Header;
 use Ruta\Ruta;
 use Ruta\Request;
 use Ruta\Response;
@@ -16,10 +21,10 @@ use Ruta\Status;
 
 // 1. Callback style
 Ruta::get('/home/hola', function (Request $req, Response $res) {
-    $res
-        ->json(
-            ['headers' => $req->headers()]
-        );
+    $res->json([
+        'host' => $req->header(Header::Host),
+        'headers' => $req->headers(),
+    ]);
 });
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
