@@ -38,8 +38,8 @@
     "scripts": {
         "lint": "PHP_CS_FIXER_IGNORE_ENV=true php-cs-fixer fix -v",
         "test:lint": "PHP_CS_FIXER_IGNORE_ENV=true php-cs-fixer fix -v --dry-run",
-        "test:types": "phpstan analyse --ansi --memory-limit=-1 --debug",
-        "test:unit": "./vendor/bin/pest --colors=always",
+        "test:types": "phpstan analyse --memory-limit=-1 --debug",
+        "test:unit": "pest --colors=always",
         "test:parallel": "exit 1",
         "test:integration": "exit 1",
         "update:snapshots": "exit 1",

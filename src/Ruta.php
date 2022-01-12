@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 // It defines HTTP Status codes.
-class Status
+final class Status
 {
     public const Continue           = 100; // RFC 7231, 6.2.1
     public const SwitchingProtocols = 101; // RFC 7231, 6.2.2
@@ -162,7 +162,7 @@ class Status
 }
 
 // It defines HTTP request methods.
-class Method
+final class Method
 {
     public const GET     = 'GET';
     public const HEAD    = 'HEAD';
@@ -175,7 +175,7 @@ class Method
 }
 
 // It defines an HTTP Header map.
-class Header
+final class Header
 {
     public const Accept                          = 'accept';
     public const AcceptCharset                   = 'accept-charset';
@@ -259,12 +259,12 @@ class Header
 }
 
 // It represents a client request.
-class Request
+final class Request
 {
     private string $proto        = '';
 
     /**
-     * @param array<string> $headers
+     * @var array<string> $headers
      */
     private array $headers       = [];
 
@@ -301,7 +301,11 @@ class Request
         }
     }
 
-    /** It gets all the request headers. */
+    /**
+     * It gets all the request headers.
+     *
+     * @return array<string>
+     */
     public function headers(): array
     {
         return $this->headers;
@@ -310,7 +314,7 @@ class Request
     /** It gets a single header value by key. It returns an empty string when not found. */
     public function header(string $key): string
     {
-        return empty($key) ? '' : $this->headers[$key] ?? '';
+        return $key === '' ? '' : $this->headers[$key] ?? '';
     }
 
     /** It gets the request protocol and version. */
@@ -331,13 +335,21 @@ class Request
         return $this->method;
     }
 
-    /** It gets the request uri converted into an array without slash separators. */
+    /**
+     * It gets the request uri converted into an array without slash separators.
+     *
+     * @return array<string>
+     */
     public function path(): array
     {
         return $this->path;
     }
 
-    /** It gets the request query converted into an array without ampersand separators. */
+    /**
+     * It gets the request query converted into an array without ampersand separators.
+     *
+     * @return array<string>
+     */
     public function query(): array
     {
         return $this->query;
@@ -349,25 +361,31 @@ class Request
         return $this->raw_data;
     }
 
-    /** It gets the body data of a `multipart/form-data` content type request. */
+    /**
+     * It gets the body data of a `multipart/form-data` content type request.
+     *
+     * @return array<string>
+     */
     public function multipart(): array
     {
         $data = [];
         if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === Method::POST) {
             $data = $_POST;
         }
-
         return $data;
     }
 
-    /** It gets the body data of a `x-www-form-urlencoded` content type request. */
+    /**
+     * It gets the body data of a `x-www-form-urlencoded` content type request.
+     *
+     * @return array<string>
+     */
     public function urlencoded(): array
     {
         $data = [];
         if (str_starts_with($this->content_type, 'application/x-www-form-urlencoded')) {
             parse_str($this->raw_data, $data);
         }
-
         return $data;
     }
 
@@ -378,34 +396,37 @@ class Request
         if (str_starts_with($this->content_type, 'application/xml')) {
             $xml = simplexml_load_string($this->raw_data) ?: null;
         }
-
         return $xml;
     }
 
-    /** It gets the body data of a `json` content type request. */
+    /** It gets the body data of a `json` content type request.
+     *
+     * @return string|array<string>|null
+     */
     public function json(): string|array|null
     {
         $json = null;
         if (str_starts_with($this->content_type, 'application/json')) {
             $json = json_decode($this->raw_data, true);
         }
-
         return $json;
     }
 }
 
 // It represents a server response.
-class Response
+final class Response
 {
     private string $status = '';
+
+    /**
+     * @var array<string> $headers
+     */
     private array $headers = [];
 
-    public function __construct(public string $method = '')
-    {
-    }
+    public string $method = '';
 
     /** It adds or updates the HTTP status. */
-    public function status(int $status_code = Status::OK)
+    public function status(int $status_code = Status::OK): Response
     {
         $status_str = Status::text($status_code);
         if (!empty($status_str)) {
@@ -416,7 +437,7 @@ class Response
     }
 
     /** It adds or updates an HTTP header. */
-    public function header(string $key, string $value)
+    public function header(string $key, string $value): Response
     {
         $key = trim($key);
         if (!empty($key)) {
@@ -429,35 +450,35 @@ class Response
     }
 
     /** It outputs an HTTP response in plain text format. */
-    public function text(string $data)
+    public function text(string $data): void
     {
         $this->header(Header::ContentType, 'text/plain;charset=utf-8');
         $this->output($data);
     }
 
     /** It outputs an HTTP response in JSON format. */
-    public function json(mixed $data, int $flags = 0, int $depth = 512)
+    public function json(mixed $data, int $flags = 0, int $depth = 512): void
     {
         $this->header(Header::ContentType, 'application/json;charset=utf-8');
         $this->output(json_encode($data, $flags, $depth));
     }
 
     /** It outputs an HTTP response in XML format. */
-    public function xml(string $data)
+    public function xml(string $data): void
     {
         $this->header(Header::ContentType, 'application/xml;charset=utf-8');
         $this->output($data);
     }
 
     /** It outputs an HTTP response in HTML format. */
-    public function html(string $data)
+    public function html(string $data): void
     {
         $this->header(Header::ContentType, 'text/html;charset=utf-8');
         $this->output($data);
     }
 
     /** It redirects to a given URL. */
-    public function redirect(string $url, int $redirect_status = Status::PermanentRedirect)
+    public function redirect(string $url, int $redirect_status = Status::PermanentRedirect): void
     {
         $this->status($redirect_status);
         $this->header(Header::Location, $url);
@@ -476,7 +497,7 @@ class Response
     }
 
     /** It creates a response that forces to download the file at a given path. */
-    public function download(string $base_path, string $file_path, string $name = '')
+    public function download(string $base_path, string $file_path, string $name = ''): void
     {
         $file_path = self::sanitize_path($base_path, $file_path);
         if (empty($file_path)) {
@@ -507,7 +528,7 @@ class Response
     }
 
     /** It creates a response that serves a file at a given path. */
-    public function file(string $base_path, string $file_path)
+    public function file(string $base_path, string $file_path): void
     {
         $file_path = self::sanitize_path($base_path, $file_path);
         if (empty($file_path)) {
@@ -534,7 +555,7 @@ class Response
     }
 
     /** It applies the current HTTP status and the available headers. */
-    private function apply_status_headers()
+    private function apply_status_headers(): void
     {
         // Apply HTTP status
         if (empty($this->status)) {
@@ -571,88 +592,142 @@ class Response
     }
 
     /** It guesses the mime type of an existing file or returns a default `application/octet-stream` instead. */
-    private static function guess_mime_type(string $file_path)
+    private static function guess_mime_type(string $file_path): string
     {
         return mime_content_type($file_path) ?: 'application/octet-stream';
     }
 }
 
 /** A lightweight and multi purpose HTTP routing library for PHP. */
-class Ruta
+final class Ruta
 {
-    private static $instance;
+    private static Ruta|null $instance = null;
+
     private static string $uri    = '';
     private static string $method = '';
+
+    /**
+     * @var array<string> $path
+     */
     private static array $path    = [];
+
+    /**
+     * @var array<string> $query
+     */
     private static array $query   = [];
+
+    /**
+     * @var \Closure|array<string> $not_found_class_method_or_func
+     */
     private static \Closure|array $not_found_class_method_or_func;
+
     private static bool $is_not_found = false;
 
-    /** It handles `GET` requests. */
-    public static function get(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `GET` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function get(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::GET, $class_method_or_func);
     }
 
-    /** It handles `HEAD` requests. */
-    public static function head(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `HEAD` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function head(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::HEAD, $class_method_or_func);
     }
 
-    /** It handles `POST` requests. */
-    public static function post(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `POST` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function post(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::POST, $class_method_or_func);
     }
 
-    /** It handles `PUT` requests. */
-    public static function put(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `PUT` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function put(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::PUT, $class_method_or_func);
     }
 
-    /** It handles `DELETE` requests. */
-    public static function delete(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `DELETE` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function delete(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, 'DELETE', $class_method_or_func);
     }
 
-    /** It handles `CONNECT` requests. */
-    public static function connect(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `CONNECT` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function connect(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::CONNECT, $class_method_or_func);
     }
 
-    /** It handles `OPTIONS` requests. */
-    public static function options(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `OPTIONS` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function options(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::OPTIONS, $class_method_or_func);
     }
 
-    /** It handles `TRACE` requests. */
-    public static function trace(string $path, callable|array $class_method_or_func)
+    /**
+     * It handles `TRACE` requests.
+     *
+     * @param string $path
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function trace(string $path, callable|array $class_method_or_func): void
     {
         self::match_route_delegate($path, Method::TRACE, $class_method_or_func);
     }
 
-    /** It handles 404 not found routes. */
-    public static function not_found(callable|array $class_method_or_func)
+    /**
+     * It handles 404 not found routes.
+     *
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function not_found(callable|array $class_method_or_func): void
     {
         self::$not_found_class_method_or_func = $class_method_or_func;
-    }
-
-    private function __construct()
-    {
     }
 
     /** Create a new singleton instance of `Ruta`. */
     public static function new(string $request_uri = '', string $request_method = ''): Ruta
     {
-        if (empty($request_uri) && isset($_SERVER['REQUEST_URI'])) {
+        if (empty($request_uri) && array_key_exists('REQUEST_URI', $_SERVER)) {
             $request_uri = $_SERVER['REQUEST_URI'];
         }
-        if (empty($request_method) && isset($_SERVER['REQUEST_METHOD'])) {
+        if (empty($request_method) && array_key_exists('REQUEST_METHOD', $_SERVER)) {
             $request_method = $_SERVER['REQUEST_METHOD'];
         }
         $uri    = trim(urldecode($request_uri));
@@ -667,17 +742,22 @@ class Ruta
         self::$path   = self::path_as_segments($uri);
         self::$query  = $_GET;
         self::$method = $method;
-        if (self::$instance) {
+        if (self::$instance !== null) {
             return self::$instance;
         }
-        self::$instance = new Ruta();
-
-        return self::$instance;
+        $inst = new Ruta();
+        self::$instance = $inst;
+        return $inst;
     }
 
-    private static function match_route_delegate(string $path, string $method, callable|array $class_method_or_func)
+    /**
+     * @param string $path
+     * @param string $method
+     * @param callable|array<string> $class_method_or_func
+     */
+    private static function match_route_delegate(string $path, string $method, callable|array $class_method_or_func): void
     {
-        if (is_null(self::$instance)) {
+        if (self::$instance === null) {
             self::new();
         }
         if (self::$method !== $method) {
@@ -714,45 +794,62 @@ class Ruta
         exit;
     }
 
-    private static function call_user_method_array(object $class_obj, string $method, array $args = [])
+    /**
+     * @param object $class_obj
+     * @param string $method
+     * @param array<string> $args
+     */
+    private static function call_user_method_array(object $class_obj, string $method, array $args = []): void
     {
         $fn          = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
         foreach ($fn->getParameters() as $param) {
-            switch ($param->getType()) {
-                case null:
-                    break;
-                case 'Ruta\Request':
-                    $method_args[] = self::new_request();
-                    break;
-                case 'Ruta\Response':
-                    $method_args[] = self::new_response();
-                    break;
-                case 'array':
-                    $method_args[] = $args;
-                    break;
+            $t = $param->getType();
+            if ($t === null) {
+                continue;
+            }
+            if ($t instanceof \ReflectionNamedType) {
+                switch ($t->getName()) {
+                    case 'Ruta\Request':
+                        $method_args[] = self::new_request();
+                        break;
+                    case 'Ruta\Response':
+                        $method_args[] = self::new_response();
+                        break;
+                    case 'array':
+                        $method_args[] = $args;
+                        break;
+                }
             }
         }
         call_user_func_array([$class_obj, $method], $method_args);
     }
 
-    private static function call_user_func_array(callable $user_func, array $args = [])
+    /**
+     * @param callable $user_func
+     * @param array<string> $args
+     */
+    private static function call_user_func_array(callable $user_func, array $args = []): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
         foreach ($fn->getParameters() as $param) {
-            switch ($param->getType()) {
-                case null:
-                    break;
-                case 'Ruta\Request':
-                    $user_func_args[] = self::new_request();
-                    break;
-                case 'Ruta\Response':
-                    $user_func_args[] = self::new_response();
-                    break;
-                case 'array':
-                    $user_func_args[] = $args;
-                    break;
+            $t = $param->getType();
+            if ($t === null) {
+                continue;
+            }
+            if ($t instanceof \ReflectionNamedType) {
+                switch ($t->getName()) {
+                    case 'Ruta\Request':
+                        $user_func_args[] = self::new_request();
+                        break;
+                    case 'Ruta\Response':
+                        $user_func_args[] = self::new_response();
+                        break;
+                    case 'array':
+                        $user_func_args[] = $args;
+                        break;
+                }
             }
         }
         call_user_func_array($user_func, $user_func_args);
@@ -768,7 +865,10 @@ class Ruta
         return new Response(self::$method);
     }
 
-    private static function match_path_query(string $path)
+    /**
+     * @return array<array<string>>
+     */
+    private static function match_path_query(string $path): array
     {
         $match           = true;
         $args            = [];
@@ -778,7 +878,7 @@ class Ruta
 
         // TODO: check also query uri
         for ($i = 0; $i < $segs_def_count; $i++) {
-            if (!isset(self::$path[$i])) {
+            if (!array_key_exists($i, self::$path)) {
                 $match = false;
                 break;
             }
@@ -805,6 +905,9 @@ class Ruta
         return [$match, $args];
     }
 
+    /**
+     * @return array<string>
+     */
     private static function path_as_segments(string $path): array
     {
         $path    = trim(parse_url($path, PHP_URL_PATH));
@@ -820,7 +923,7 @@ class Ruta
                 $j++;
                 continue;
             }
-            if (!isset($segs[$j])) {
+            if (!array_key_exists($j, $segs)) {
                 $slashes = 0;
                 array_push($segs, '');
             }
@@ -836,22 +939,20 @@ class Ruta
         if (!self::$is_not_found) {
             return;
         }
-        if (isset(self::$not_found_class_method_or_func)) {
+        if (is_array(self::$not_found_class_method_or_func)) {
             // Handle class/method callable
-            if (is_array(self::$not_found_class_method_or_func)) {
-                if (!count(self::$not_found_class_method_or_func) === 2) {
-                    throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
-                }
-                list($class_name, $method) = self::$not_found_class_method_or_func;
-                $class_obj                 = new $class_name();
-                if (is_callable([$class_obj, $method], false)) {
-                    self::call_user_method_array($class_obj, $method);
-
-                    return;
-                }
-                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+            if (count(self::$not_found_class_method_or_func) !== 2) {
+                throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
             }
+            list($class_name, $method) = self::$not_found_class_method_or_func;
+            $class_obj                 = new $class_name();
+            if (is_callable([$class_obj, $method], false)) {
+                self::call_user_method_array($class_obj, $method);
 
+                return;
+            }
+            throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+        } elseif (is_callable(self::$not_found_class_method_or_func)) {
             // Handle function callable
             self::call_user_func_array(self::$not_found_class_method_or_func);
         } else {
