@@ -264,7 +264,7 @@ final class Request
     private string $proto        = '';
 
     /**
-     * @var array<string> $headers
+     * @var array<string>
      */
     private array $headers       = [];
 
@@ -372,6 +372,7 @@ final class Request
         if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === Method::POST) {
             $data = $_POST;
         }
+
         return $data;
     }
 
@@ -386,6 +387,7 @@ final class Request
         if (str_starts_with($this->content_type, 'application/x-www-form-urlencoded')) {
             parse_str($this->raw_data, $data);
         }
+
         return $data;
     }
 
@@ -396,6 +398,7 @@ final class Request
         if (str_starts_with($this->content_type, 'application/xml')) {
             $xml = simplexml_load_string($this->raw_data) ?: null;
         }
+
         return $xml;
     }
 
@@ -409,6 +412,7 @@ final class Request
         if (str_starts_with($this->content_type, 'application/json')) {
             $json = json_decode($this->raw_data, true);
         }
+
         return $json;
     }
 }
@@ -419,7 +423,7 @@ final class Response
     private string $status = '';
 
     /**
-     * @var array<string> $headers
+     * @var array<string>
      */
     private array $headers = [];
 
@@ -607,17 +611,17 @@ final class Ruta
     private static string $method = '';
 
     /**
-     * @var array<string> $path
+     * @var array<string>
      */
     private static array $path    = [];
 
     /**
-     * @var array<string> $query
+     * @var array<string>
      */
     private static array $query   = [];
 
     /**
-     * @var \Closure|array<string> $not_found_class_method_or_func
+     * @var \Closure|array<string>
      */
     private static \Closure|array $not_found_class_method_or_func;
 
@@ -626,7 +630,6 @@ final class Ruta
     /**
      * It handles `GET` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function get(string $path, callable|array $class_method_or_func): void
@@ -637,7 +640,6 @@ final class Ruta
     /**
      * It handles `HEAD` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function head(string $path, callable|array $class_method_or_func): void
@@ -648,7 +650,6 @@ final class Ruta
     /**
      * It handles `POST` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function post(string $path, callable|array $class_method_or_func): void
@@ -659,7 +660,6 @@ final class Ruta
     /**
      * It handles `PUT` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function put(string $path, callable|array $class_method_or_func): void
@@ -670,7 +670,6 @@ final class Ruta
     /**
      * It handles `DELETE` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function delete(string $path, callable|array $class_method_or_func): void
@@ -681,7 +680,6 @@ final class Ruta
     /**
      * It handles `CONNECT` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function connect(string $path, callable|array $class_method_or_func): void
@@ -692,7 +690,6 @@ final class Ruta
     /**
      * It handles `OPTIONS` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function options(string $path, callable|array $class_method_or_func): void
@@ -703,7 +700,6 @@ final class Ruta
     /**
      * It handles `TRACE` requests.
      *
-     * @param string $path
      * @param callable|array<string> $class_method_or_func
      */
     public static function trace(string $path, callable|array $class_method_or_func): void
@@ -745,14 +741,13 @@ final class Ruta
         if (self::$instance !== null) {
             return self::$instance;
         }
-        $inst = new Ruta();
+        $inst           = new Ruta();
         self::$instance = $inst;
+
         return $inst;
     }
 
     /**
-     * @param string $path
-     * @param string $method
      * @param callable|array<string> $class_method_or_func
      */
     private static function match_route_delegate(string $path, string $method, callable|array $class_method_or_func): void
@@ -795,8 +790,6 @@ final class Ruta
     }
 
     /**
-     * @param object $class_obj
-     * @param string $method
      * @param array<string> $args
      */
     private static function call_user_method_array(object $class_obj, string $method, array $args = []): void
@@ -826,7 +819,6 @@ final class Ruta
     }
 
     /**
-     * @param callable $user_func
      * @param array<string> $args
      */
     private static function call_user_func_array(callable $user_func, array $args = []): void
