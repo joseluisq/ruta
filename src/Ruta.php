@@ -38,39 +38,39 @@ final class Status
     public const SeeOther          = 303; // RFC 7231, 6.4.4
     public const NotModified       = 304; // RFC 7232, 4.1
     public const UseProxy          = 305; // RFC 7231, 6.4.5
-    public const _                 = 306; // RFC 7231, 6.4.6 (Unused)
+    // public const _                 = 306; // RFC 7231, 6.4.6 (Unused)
     public const TemporaryRedirect = 307; // RFC 7231, 6.4.7
     public const PermanentRedirect = 308; // RFC 7538, 3
 
-    public const BadRequest                   = 400; // RFC 7231, 6.5.1
-    public const Unauthorized                 = 401; // RFC 7235, 3.1
-    public const PaymentRequired              = 402; // RFC 7231, 6.5.2
-    public const Forbidden                    = 403; // RFC 7231, 6.5.3
-    public const NotFound                     = 404; // RFC 7231, 6.5.4
-    public const MethodNotAllowed             = 405; // RFC 7231, 6.5.5
-    public const NotAcceptable                = 406; // RFC 7231, 6.5.6
-    public const ProxyAuthRequired            = 407; // RFC 7235, 3.2
-    public const RequestTimeout               = 408; // RFC 7231, 6.5.7
-    public const Conflict                     = 409; // RFC 7231, 6.5.8
-    public const Gone                         = 410; // RFC 7231, 6.5.9
-    public const LengthRequired               = 411; // RFC 7231, 6.5.10
-    public const PreconditionFailed           = 412; // RFC 7232, 4.2
-    public const RequestEntityTooLarge        = 413; // RFC 7231, 6.5.11
-    public const RequestURITooLong            = 414; // RFC 7231, 6.5.12
-    public const UnsupportedMediaType         = 415; // RFC 7231, 6.5.13
-    public const RequestedRangeNotSatisfiable = 416; // RFC 7233, 4.4
-    public const ExpectationFailed            = 417; // RFC 7231, 6.5.14
-    public const Teapot                       = 418; // RFC 7168, 2.3.3
-    public const MisdirectedRequest           = 421; // RFC 7540, 9.1.2
-    public const UnprocessableEntity          = 422; // RFC 4918, 11.2
-    public const Locked                       = 423; // RFC 4918, 11.3
-    public const FailedDependency             = 424; // RFC 4918, 11.4
-    public const TooEarly                     = 425; // RFC 8470, 5.2.
-    public const UpgradeRequired              = 426; // RFC 7231, 6.5.15
-    public const PreconditionRequired         = 428; // RFC 6585, 3
-    public const TooManyRequests              = 429; // RFC 6585, 4
-    public const RequestHeaderFieldsTooLarge  = 431; // RFC 6585, 5
-    public const UnavailableForLegalReasons   = 451; // RFC 7725, 3
+    public const BadRequest                       = 400; // RFC 7231, 6.5.1
+    public const Unauthorized                     = 401; // RFC 7235, 3.1
+    public const PaymentRequired                  = 402; // RFC 7231, 6.5.2
+    public const Forbidden                        = 403; // RFC 7231, 6.5.3
+    public const NotFound                         = 404; // RFC 7231, 6.5.4
+    public const MethodNotAllowed                 = 405; // RFC 7231, 6.5.5
+    public const NotAcceptable                    = 406; // RFC 7231, 6.5.6
+    public const ProxyAuthRequired                = 407; // RFC 7235, 3.2
+    public const RequestTimeout                   = 408; // RFC 7231, 6.5.7
+    public const Conflict                         = 409; // RFC 7231, 6.5.8
+    public const Gone                             = 410; // RFC 7231, 6.5.9
+    public const LengthRequired                   = 411; // RFC 7231, 6.5.10
+    public const PreconditionFailed               = 412; // RFC 7232, 4.2
+    public const RequestEntityTooLarge            = 413; // RFC 7231, 6.5.11
+    public const RequestURITooLong                = 414; // RFC 7231, 6.5.12
+    public const UnsupportedMediaType             = 415; // RFC 7231, 6.5.13
+    public const RequestedRangeNotSatisfiable     = 416; // RFC 7233, 4.4
+    public const ExpectationFailed                = 417; // RFC 7231, 6.5.14
+    public const Teapot                           = 418; // RFC 7168, 2.3.3
+    public const MisdirectedRequest               = 421; // RFC 7540, 9.1.2
+    public const UnprocessableEntity              = 422; // RFC 4918, 11.2
+    public const Locked                           = 423; // RFC 4918, 11.3
+    public const FailedDependency                 = 424; // RFC 4918, 11.4
+    public const TooEarly                         = 425; // RFC 8470, 5.2.
+    public const UpgradeRequired                  = 426; // RFC 7231, 6.5.15
+    public const PreconditionRequired             = 428; // RFC 6585, 3
+    public const TooManyRequests                  = 429; // RFC 6585, 4
+    public const RequestHeaderFieldsTooLarge      = 431; // RFC 6585, 5
+    public const UnavailableForLegalReasons       = 451; // RFC 7725, 3
 
     public const InternalServerError           = 500; // RFC 7231, 6.6.1
     public const NotImplemented                = 501; // RFC 7231, 6.6.2
@@ -292,12 +292,13 @@ final class Request
             }
         }
 
-        switch ($method) {
-            case Method::POST:
-            case Method::PUT:
-            case Method::DELETE:
-                $this->raw_data = file_get_contents('php://input');
-                break;
+        if (
+            $method === Method::POST ||
+            $method === Method::PUT ||
+            $method === Method::DELETE
+        ) {
+            $input          = file_get_contents('php://input');
+            $this->raw_data = $input === false ? '' : $input;
         }
     }
 
@@ -369,7 +370,8 @@ final class Request
     public function multipart(): array
     {
         $data = [];
-        if (str_starts_with($this->content_type, 'multipart/form-data') && $this->method === Method::POST) {
+        if ($this->method === Method::POST && str_starts_with($this->content_type, 'multipart/form-data')) {
+            /* @phpstan-ignore-next-line */
             $data = $_POST;
         }
 
@@ -396,7 +398,10 @@ final class Request
     {
         $xml = null;
         if (str_starts_with($this->content_type, 'application/xml')) {
-            $xml = simplexml_load_string($this->raw_data) ?: null;
+            $r = simplexml_load_string($this->raw_data);
+            if ($r instanceof \SimpleXMLElement) {
+                $xml = $r;
+            }
         }
 
         return $xml;
@@ -433,7 +438,7 @@ final class Response
     public function status(int $status_code = Status::OK): Response
     {
         $status_str = Status::text($status_code);
-        if (!empty($status_str)) {
+        if ($status_str !== '') {
             $this->status = "HTTP/1.1 $status_code $status_str";
         }
 
@@ -444,7 +449,7 @@ final class Response
     public function header(string $key, string $value): Response
     {
         $key = trim($key);
-        if (!empty($key)) {
+        if ($key !== '') {
             // TODO: Add only valid char keys
             $key                 = strtolower($key);
             $this->headers[$key] = trim($value);
@@ -464,7 +469,10 @@ final class Response
     public function json(mixed $data, int $flags = 0, int $depth = 512): void
     {
         $this->header(Header::ContentType, 'application/json;charset=utf-8');
-        $this->output(json_encode($data, $flags, $depth));
+        $json = json_encode($data, $flags, $depth);
+        if ($json !== false) {
+            $this->output($json);
+        }
     }
 
     /** It outputs an HTTP response in XML format. */
@@ -491,7 +499,7 @@ final class Response
     }
 
     /** It outputs the corresponding response using a given raw data. */
-    private function output(string $data)
+    private function output(string $data): void
     {
         $this->header(Header::ContentLength, (string) strlen($data));
         $this->apply_status_headers();
@@ -504,7 +512,7 @@ final class Response
     public function download(string $base_path, string $file_path, string $name = ''): void
     {
         $file_path = self::sanitize_path($base_path, $file_path);
-        if (empty($file_path)) {
+        if ($file_path === '') {
             $this->status(Status::NotFound);
             $this->apply_status_headers();
 
@@ -513,12 +521,15 @@ final class Response
         if (is_file($file_path)) {
             $this->status();
             $this->header(Header::ContentType, self::guess_mime_type($file_path));
-            $filename = empty($name) ? basename($file_path) : $name;
+            $filename = $name === '' ? basename($file_path) : $name;
             $this->header(Header::ContentDisposition, 'attachment; filename="' . $filename . '"');
             $this->header(Header::Expires, '0');
             $this->header(Header::CacheControl, 'must-revalidate');
             $this->header(Header::Pragma, 'public');
-            $this->header(Header::ContentLength, (string) filesize($file_path) ?: 0);
+            $size = filesize($file_path);
+            if ($size !== false) {
+                $this->header(Header::ContentLength, (string) $size);
+            }
             $this->apply_status_headers();
             if ($this->method != Method::HEAD) {
                 readfile($file_path);
@@ -535,7 +546,7 @@ final class Response
     public function file(string $base_path, string $file_path): void
     {
         $file_path = self::sanitize_path($base_path, $file_path);
-        if (empty($file_path)) {
+        if ($file_path === '') {
             $this->status(Status::NotFound);
             $this->apply_status_headers();
 
@@ -545,7 +556,10 @@ final class Response
             $this->header(Header::ContentType, self::guess_mime_type($file_path));
             // TODO: we want to have more flexibility over these cache-control headers
             $this->header(Header::CacheControl, 'public, max-age=0');
-            $this->header(Header::ContentLength, (string) filesize($file_path) ?: 0);
+            $size = filesize($file_path);
+            if ($size !== false) {
+                $this->header(Header::ContentLength, (string) $size);
+            }
             $this->apply_status_headers();
             if ($this->method != Method::HEAD) {
                 readfile($file_path);
@@ -562,7 +576,7 @@ final class Response
     private function apply_status_headers(): void
     {
         // Apply HTTP status
-        if (empty($this->status)) {
+        if ($this->status === '') {
             $this->status(Status::OK);
         }
         header($this->status);
@@ -576,17 +590,17 @@ final class Response
     }
 
     /** It sanitizes a specific file path protecting it against path/directory traversal. */
-    private static function sanitize_path(string $base_path, string $file_path): string|null
+    private static function sanitize_path(string $base_path, string $file_path): string
     {
         $path = [];
         $segs = explode('/', urldecode(trim($file_path)));
         foreach ($segs as $seg) {
             if (str_starts_with($seg, '..')) {
                 // Rejecting segment starting with '..'
-                return null;
+                return '';
             } elseif (str_starts_with($seg, '\\')) {
                 // Rejecting segment containing with backslash (\\)
-                return null;
+                return '';
             } else {
                 array_push($path, $seg);
             }
@@ -598,7 +612,9 @@ final class Response
     /** It guesses the mime type of an existing file or returns a default `application/octet-stream` instead. */
     private static function guess_mime_type(string $file_path): string
     {
-        return mime_content_type($file_path) ?: 'application/octet-stream';
+        $mime = mime_content_type($file_path);
+
+        return $mime === false ? 'application/octet-stream' : $mime;
     }
 }
 
@@ -720,22 +736,23 @@ final class Ruta
     /** Create a new singleton instance of `Ruta`. */
     public static function new(string $request_uri = '', string $request_method = ''): Ruta
     {
-        if (empty($request_uri) && array_key_exists('REQUEST_URI', $_SERVER)) {
+        if ($request_uri === '' && array_key_exists('REQUEST_URI', $_SERVER)) {
             $request_uri = $_SERVER['REQUEST_URI'];
         }
-        if (empty($request_method) && array_key_exists('REQUEST_METHOD', $_SERVER)) {
+        if ($request_method === '' && array_key_exists('REQUEST_METHOD', $_SERVER)) {
             $request_method = $_SERVER['REQUEST_METHOD'];
         }
         $uri    = trim(urldecode($request_uri));
         $method = trim($request_method);
-        if (empty($uri)) {
+        if ($uri === '') {
             throw new \InvalidArgumentException('HTTP request uri is not provided.');
         }
-        if (empty($method)) {
+        if ($method === '') {
             throw new \InvalidArgumentException('HTTP request method is not provided.');
         }
         self::$uri    = $uri;
         self::$path   = self::path_as_segments($uri);
+        /* @phpstan-ignore-next-line */
         self::$query  = $_GET;
         self::$method = $method;
         if (self::$instance !== null) {
@@ -757,7 +774,7 @@ final class Ruta
         }
         if (self::$method !== $method) {
             // TODO: maybe reply with a "405 Method Not Allowed"
-            // but make suer to provide control for users
+            // but make sure to provide control for users
             self::$is_not_found = true;
 
             return;
@@ -770,7 +787,7 @@ final class Ruta
 
         // Handle class/method callable
         if (is_array($class_method_or_func)) {
-            if (!count($class_method_or_func) === 2) {
+            if (count($class_method_or_func) !== 2) {
                 throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
             }
             list($class_name, $method) = $class_method_or_func;
@@ -802,16 +819,18 @@ final class Ruta
                 continue;
             }
             if ($t instanceof \ReflectionNamedType) {
-                switch ($t->getName()) {
-                    case 'Ruta\Request':
-                        $method_args[] = self::new_request();
-                        break;
-                    case 'Ruta\Response':
-                        $method_args[] = self::new_response();
-                        break;
-                    case 'array':
-                        $method_args[] = $args;
-                        break;
+                $name = $t->getName();
+                if ($name === 'Ruta\Request') {
+                    $method_args[] = self::new_request();
+                    continue;
+                }
+                if ($name === 'Ruta\Response') {
+                    $method_args[] = self::new_response();
+                    continue;
+                }
+                if ($name === 'array') {
+                    $method_args[] = $args;
+                    continue;
                 }
             }
         }
@@ -831,16 +850,18 @@ final class Ruta
                 continue;
             }
             if ($t instanceof \ReflectionNamedType) {
-                switch ($t->getName()) {
-                    case 'Ruta\Request':
-                        $user_func_args[] = self::new_request();
-                        break;
-                    case 'Ruta\Response':
-                        $user_func_args[] = self::new_response();
-                        break;
-                    case 'array':
-                        $user_func_args[] = $args;
-                        break;
+                $name = $t->getName();
+                if ($name === 'Ruta\Request') {
+                    $user_func_args[] = self::new_request();
+                    continue;
+                }
+                if ($name === 'Ruta\Response') {
+                    $user_func_args[] = self::new_response();
+                    continue;
+                }
+                if ($name === 'array') {
+                    $user_func_args[] = $args;
+                    continue;
                 }
             }
         }
@@ -854,11 +875,11 @@ final class Ruta
 
     private static function new_response(): Response
     {
-        return new Response(self::$method);
+        return new Response();
     }
 
     /**
-     * @return array<array<string>>
+     * @return array<bool|array<string>>
      */
     private static function match_path_query(string $path): array
     {
@@ -880,7 +901,7 @@ final class Ruta
                 // 1. placeholder
                 if (str_starts_with($seg_def, '{') && str_ends_with($seg_def, '}')) {
                     $key = trim(substr(substr($seg_def, 0), 0, -1));
-                    if (!empty($key)) {
+                    if ($key !== '') {
                         $args[$key]      = $seg_in;
                         $has_placeholder = true;
                         continue;
