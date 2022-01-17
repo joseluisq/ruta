@@ -263,9 +263,7 @@ final class Request
 {
     private string $proto        = '';
 
-    /**
-     * @var array<string>
-     */
+    /** @var array<string> */
     private array $headers       = [];
 
     private string $content_type = '';
@@ -278,10 +276,10 @@ final class Request
      * @param array<string> $query
      */
     public function __construct(
-        private string $uri = '',
-        private string $method = '',
-        private array $path = [],
-        private array $query = [],
+        private string $uri,
+        private string $method,
+        private array $path,
+        private array $query,
     ) {
         $this->proto        = $_SERVER['SERVER_PROTOCOL'] ?? '';
         $this->content_type = trim($_SERVER['HTTP_CONTENT_TYPE'] ?? '');
@@ -409,9 +407,9 @@ final class Request
 
     /** It gets the body data of a `json` content type request.
      *
-     * @return string|array<string>|null
+     * @return mixed
      */
-    public function json(): string|array|null
+    public function json(): mixed
     {
         $json = null;
         if (str_starts_with($this->content_type, 'application/json')) {
@@ -469,6 +467,7 @@ final class Response
     public function json(mixed $data, int $flags = 0, int $depth = 512): void
     {
         $this->header(Header::ContentType, 'application/json;charset=utf-8');
+        // @phpstan-ignore-next-line
         $json = json_encode($data, $flags, $depth);
         if ($json !== false) {
             $this->output($json);
@@ -726,9 +725,9 @@ final class Ruta
     /**
      * It handles 404 not found routes.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param \Closure|array<string> $class_method_or_func
      */
-    public static function not_found(callable|array $class_method_or_func): void
+    public static function not_found(\Closure|array $class_method_or_func): void
     {
         self::$not_found_class_method_or_func = $class_method_or_func;
     }
@@ -801,6 +800,7 @@ final class Ruta
         }
 
         // Handle function callable
+        // @phpstan-ignore-next-line
         self::call_user_func_array($class_method_or_func, $args);
         // Terminate when route found and delegated
         exit;
@@ -834,13 +834,14 @@ final class Ruta
                 }
             }
         }
+        // @phpstan-ignore-next-line
         call_user_func_array([$class_obj, $method], $method_args);
     }
 
     /**
      * @param array<string> $args
      */
-    private static function call_user_func_array(callable $user_func, array $args = []): void
+    private static function call_user_func_array(\Closure $user_func, array $args = []): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
@@ -879,7 +880,7 @@ final class Ruta
     }
 
     /**
-     * @return array<bool|array<string>>
+     * @return array{0:bool,1:string[]}
      */
     private static function match_path_query(string $path): array
     {
@@ -923,7 +924,11 @@ final class Ruta
      */
     private static function path_as_segments(string $path): array
     {
-        $path    = trim(parse_url($path, PHP_URL_PATH));
+        $raw = parse_url($path, PHP_URL_PATH);
+        if (!is_string($raw)) {
+            return [];
+        }
+        $path    = trim($raw);
         $segs    = [];
         $j       = 0;
         $slashes = 0;
