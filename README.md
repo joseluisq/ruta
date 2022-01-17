@@ -6,6 +6,13 @@
 
 [PHP 8.0](https://www.php.net/releases/8.0/en.php) or newer.
 
+
+## Install
+
+```sh
+composer require joseluisq/ruta
+```
+
 ## Usage
 
 ```php
