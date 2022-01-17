@@ -29,16 +29,9 @@ Ruta::get('/home/hola', function (Request $req, Response $res) {
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
 });
-Ruta::get('/home/files/{file}', function (Response $res, array $args) {
-    $base_path = getcwd();
-    $file_path = $args['file'];
-    $res->file($base_path, $file_path);
-});
-
 Ruta::post('/home/{path3}/some2', function (Response $res) {
     $res->json(['post_data' => 11010101010]);
 });
-
 Ruta::post('/home/{path}', function (Response $res) {
     $res
         ->header('X-Header-One', 'Header Value 1')

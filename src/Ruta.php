@@ -405,10 +405,7 @@ final class Request
         return $xml;
     }
 
-    /** It gets the body data of a `json` content type request.
-     *
-     * @return mixed
-     */
+    /** It gets the body data of a `json` content type request. */
     public function json(): mixed
     {
         $json = null;
@@ -507,70 +504,6 @@ final class Response
         }
     }
 
-    /** It creates a response that forces to download the file at a given path. */
-    public function download(string $base_path, string $file_path, string $name = ''): void
-    {
-        $file_path = self::sanitize_path($base_path, $file_path);
-        if ($file_path === '') {
-            $this->status(Status::NotFound);
-            $this->apply_status_headers();
-
-            return;
-        }
-        if (is_file($file_path)) {
-            $this->status();
-            $this->header(Header::ContentType, self::guess_mime_type($file_path));
-            $filename = $name === '' ? basename($file_path) : $name;
-            $this->header(Header::ContentDisposition, 'attachment; filename="' . $filename . '"');
-            $this->header(Header::Expires, '0');
-            $this->header(Header::CacheControl, 'must-revalidate');
-            $this->header(Header::Pragma, 'public');
-            $size = filesize($file_path);
-            if ($size !== false) {
-                $this->header(Header::ContentLength, (string) $size);
-            }
-            $this->apply_status_headers();
-            if ($this->method != Method::HEAD) {
-                readfile($file_path);
-            }
-
-            return;
-        }
-        // Otherwise respond with a 404
-        $this->status(Status::NotFound);
-        $this->apply_status_headers();
-    }
-
-    /** It creates a response that serves a file at a given path. */
-    public function file(string $base_path, string $file_path): void
-    {
-        $file_path = self::sanitize_path($base_path, $file_path);
-        if ($file_path === '') {
-            $this->status(Status::NotFound);
-            $this->apply_status_headers();
-
-            return;
-        }
-        if (is_file($file_path)) {
-            $this->header(Header::ContentType, self::guess_mime_type($file_path));
-            // TODO: we want to have more flexibility over these cache-control headers
-            $this->header(Header::CacheControl, 'public, max-age=0');
-            $size = filesize($file_path);
-            if ($size !== false) {
-                $this->header(Header::ContentLength, (string) $size);
-            }
-            $this->apply_status_headers();
-            if ($this->method != Method::HEAD) {
-                readfile($file_path);
-            }
-
-            return;
-        }
-        // Otherwise respond with a 404
-        $this->status(Status::NotFound);
-        $this->apply_status_headers();
-    }
-
     /** It applies the current HTTP status and the available headers. */
     private function apply_status_headers(): void
     {
@@ -586,34 +519,6 @@ final class Response
             header("$key: $value");
         }
         $this->headers = [];
-    }
-
-    /** It sanitizes a specific file path protecting it against path/directory traversal. */
-    private static function sanitize_path(string $base_path, string $file_path): string
-    {
-        $path = [];
-        $segs = explode('/', urldecode(trim($file_path)));
-        foreach ($segs as $seg) {
-            if (str_starts_with($seg, '..')) {
-                // Rejecting segment starting with '..'
-                return '';
-            } elseif (str_starts_with($seg, '\\')) {
-                // Rejecting segment containing with backslash (\\)
-                return '';
-            } else {
-                array_push($path, $seg);
-            }
-        }
-
-        return "$base_path/" . implode('/', $path);
-    }
-
-    /** It guesses the mime type of an existing file or returns a default `application/octet-stream` instead. */
-    private static function guess_mime_type(string $file_path): string
-    {
-        $mime = mime_content_type($file_path);
-
-        return $mime === false ? 'application/octet-stream' : $mime;
     }
 }
 
