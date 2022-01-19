@@ -1,4 +1,5 @@
 compose-up:
+	@cd example/nginx/public/ && composer install
 	@docker-compose -f example/docker-compose.yml up
 .PHONY: compose-up
 

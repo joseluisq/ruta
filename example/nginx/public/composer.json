@@ -1,0 +1,23 @@
+{
+    "name": "joseluis/ruta-example",
+    "description": "Example of using Ruta",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RutaExample\\": "src/"
+        },
+        "files": [
+            "src/RutaExample.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Jose Quintana"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "joseluisq/ruta": "dev-master"
+    }
+}

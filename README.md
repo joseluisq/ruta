@@ -1,4 +1,6 @@
-# Ruta <a href="https://github.com/joseluisq/ruta/actions/workflows/tests.yml" title="tests ci"><img src="https://github.com/joseluisq/ruta/actions/workflows/tests.yml/badge.svg?branch=master"></a>
+# Ruta
+
+[![tests ci](https://github.com/joseluisq/ruta/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/joseluisq/ruta/actions/workflows/tests.yml) [![Latest Stable Version](https://poser.pugx.org/joseluisq/ruta/version)](https://packagist.org/packages/joseluisq/ruta) [![Latest Unstable Version](https://poser.pugx.org/joseluisq/ruta/v/unstable)](//packagist.org/packages/joseluisq/ruta) [![Total Downloads](https://poser.pugx.org/joseluisq/ruta/downloads)](https://packagist.org/packages/joseluisq/ruta) [![License](https://poser.pugx.org/joseluisq/ruta/license)](https://packagist.org/packages/joseluisq/ruta)
 
 > A lightweight single-file HTTP routing library for PHP. (WIP)
 
@@ -6,11 +8,12 @@
 
 [PHP 8.0](https://www.php.net/releases/8.0/en.php) or newer.
 
-
 ## Install
 
+Install via [Composer](https://packagist.org/packages/joseluisq/ruta)
+
 ```sh
-composer require joseluisq/ruta
+composer require joseluisq/ruta:dev-master
 ```
 
 ## Usage
@@ -20,6 +23,8 @@ composer require joseluisq/ruta
 
 declare(strict_types=1);
 
+require 'vendor/autoload.php';
+
 use Ruta\Header;
 use Ruta\Ruta;
 use Ruta\Request;
@@ -27,6 +32,10 @@ use Ruta\Response;
 use Ruta\Status;
 
 // 1. Callback style
+
+// NOTE: `Request`, `Response`, `array` (slug arguments) are passed to the callback.
+// However they are optional and their order can be modified. See more examples below.
+
 Ruta::get('/home/hola', function (Request $req, Response $res) {
     $res->json([
         'host' => $req->header(Header::Host),
