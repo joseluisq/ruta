@@ -17,7 +17,13 @@
         }
     ],
     "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../../"
+        }
+      ],
     "require": {
-        "joseluisq/ruta": "dev-master"
+        "joseluisq/ruta": "*"
     }
 }

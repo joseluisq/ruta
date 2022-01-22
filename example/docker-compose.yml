@@ -25,4 +25,5 @@ services:
       - "9090"
     volumes:
       - ./nginx/public:/usr/share/nginx/html/
-      # - ../src:/usr/src
+      - ../src:/usr/src
+      - ../composer.json:/usr/composer.json

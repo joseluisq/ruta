@@ -164,6 +164,7 @@ final class Status
 /** It defines HTTP request methods. */
 final class Method
 {
+    // RFC 7231, section 4: Request methods
     public const GET     = 'GET';
     public const HEAD    = 'HEAD';
     public const POST    = 'POST';
@@ -172,6 +173,9 @@ final class Method
     public const CONNECT = 'CONNECT';
     public const OPTIONS = 'OPTIONS';
     public const TRACE   = 'TRACE';
+
+    // RFC 5789, section 2: Patch method
+    public const PATCH   = 'PATCH';
 }
 
 /** It defines HTTP headers. */
@@ -543,7 +547,7 @@ final class Ruta
     /**
      * @var \Closure|array<string>
      */
-    private static \Closure|array $not_found_class_method_or_func;
+    private static \Closure|array $not_found_callable = [];
 
     private static bool $is_not_found = false;
 
@@ -628,26 +632,30 @@ final class Ruta
     }
 
     /**
+     * It handles requests based on the HTTP `PATCH` method.
+     *
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function patch(string $path, callable|array $class_method_or_func): void
+    {
+        self::match_route_delegate($path, Method::PATCH, $class_method_or_func);
+    }
+
+    /**
      * It handles all `404` not found routes.
      *
      * @param \Closure|array<string> $class_method_or_func
      */
     public static function not_found(\Closure|array $class_method_or_func): void
     {
-        self::$not_found_class_method_or_func = $class_method_or_func;
+        self::$not_found_callable = $class_method_or_func;
     }
 
     /** It creates a new singleton instance of `Ruta`. */
-    private static function new(string $request_uri = '', string $request_method = ''): Ruta
+    private static function new(): Ruta
     {
-        if ($request_uri === '' && array_key_exists('REQUEST_URI', $_SERVER)) {
-            $request_uri = $_SERVER['REQUEST_URI'];
-        }
-        if ($request_method === '' && array_key_exists('REQUEST_METHOD', $_SERVER)) {
-            $request_method = $_SERVER['REQUEST_METHOD'];
-        }
-        $uri    = trim(urldecode($request_uri));
-        $method = trim($request_method);
+        $uri    = urldecode($_SERVER['REQUEST_URI']);
+        $method = trim($_SERVER['REQUEST_METHOD']);
         if ($uri === '') {
             throw new \InvalidArgumentException('HTTP request uri is not provided.');
         }
@@ -662,10 +670,9 @@ final class Ruta
         if (self::$instance !== null) {
             return self::$instance;
         }
-        $inst           = new Ruta();
-        self::$instance = $inst;
+        self::$instance = new Ruta();
 
-        return $inst;
+        return self::$instance;
     }
 
     /**
@@ -691,17 +698,17 @@ final class Ruta
 
         // Handle class/method callable
         if (is_array($class_method_or_func)) {
-            if (count($class_method_or_func) !== 2) {
-                throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
+            if (count($class_method_or_func) === 2) {
+                list($class_name, $method) = $class_method_or_func;
+                $class_obj                 = new $class_name();
+                if (is_callable([$class_obj, $method])) {
+                    self::call_user_method_array($class_obj, $method, $args);
+                    // Terminate when route found and delegated
+                    exit;
+                }
+                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
             }
-            list($class_name, $method) = $class_method_or_func;
-            $class_obj                 = new $class_name();
-            if (is_callable([$class_obj, $method], false)) {
-                self::call_user_method_array($class_obj, $method, $args);
-                // Terminate when route found and delegated
-                exit;
-            }
-            throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+            throw new \InvalidArgumentException('Provided array value is not a valid class and method pair.');
         }
 
         // Handle function callable
@@ -852,26 +859,32 @@ final class Ruta
         if (!self::$is_not_found) {
             return;
         }
-        if (is_array(self::$not_found_class_method_or_func)) {
-            // Handle class/method callable
-            if (count(self::$not_found_class_method_or_func) !== 2) {
-                throw new \InvalidArgumentException('Provided value is not a valid class and method pair.');
-            }
-            list($class_name, $method) = self::$not_found_class_method_or_func;
-            $class_obj                 = new $class_name();
-            if (is_callable([$class_obj, $method], false)) {
-                self::call_user_method_array($class_obj, $method);
 
-                return;
+        // Handle class/method callable
+        if (is_array(self::$not_found_callable)) {
+            if (count(self::$not_found_callable) === 2) {
+                list($class_name, $method) = self::$not_found_callable;
+                $class_obj                 = new $class_name();
+                if (is_callable([$class_obj, $method])) {
+                    self::call_user_method_array($class_obj, $method);
+
+                    return;
+                }
+                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
             }
-            throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
-        } elseif (is_callable(self::$not_found_class_method_or_func)) {
-            // Handle function callable
-            self::call_user_func_array(self::$not_found_class_method_or_func);
-        } else {
-            $res = new Response();
-            $res->status(Status::NotFound);
-            $res->text(Status::text(Status::NotFound));
         }
+
+        // Handle function callable
+        if (is_callable(self::$not_found_callable)) {
+            // @phpstan-ignore-next-line
+            self::call_user_func_array(self::$not_found_callable);
+
+            return;
+        }
+
+        // Otherwise send default response
+        $res = new Response();
+        $res->status(Status::NotFound);
+        $res->text(Status::text(Status::NotFound));
     }
 }
