@@ -1,7 +1,7 @@
 {
     "name": "joseluisq/ruta",
     "type": "library",
-    "description": "A lightweight single-file HTTP routing library for PHP without external dependencies",
+    "description": "A lightweight HTTP routing library for PHP without external dependencies",
     "license": [
         "Apache-2.0",
         "MIT"

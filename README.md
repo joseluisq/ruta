@@ -2,7 +2,7 @@
 
 [![tests ci](https://github.com/joseluisq/ruta/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/joseluisq/ruta/actions/workflows/tests.yml) [![Latest Stable Version](https://poser.pugx.org/joseluisq/ruta/version)](https://packagist.org/packages/joseluisq/ruta) [![Latest Unstable Version](https://poser.pugx.org/joseluisq/ruta/v/unstable)](//packagist.org/packages/joseluisq/ruta) [![Total Downloads](https://poser.pugx.org/joseluisq/ruta/downloads)](https://packagist.org/packages/joseluisq/ruta) [![License](https://poser.pugx.org/joseluisq/ruta/license)](https://packagist.org/packages/joseluisq/ruta)
 
-> A lightweight single-file HTTP routing library for PHP. (WIP)
+> A lightweight HTTP routing library for PHP. (WIP)
 
 ## Requirements
 
