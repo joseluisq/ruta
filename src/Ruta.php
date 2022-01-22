@@ -305,7 +305,7 @@ final class Request
     }
 
     /**
-     * It gets all the request headers.
+     * It gets all the request headers. Header list keys are always in lowercase.
      *
      * @return array<string>
      */
@@ -314,7 +314,9 @@ final class Request
         return $this->headers;
     }
 
-    /** It gets a single header value by key. It returns an empty string when not found. */
+    /**
+     * It gets a single header value by key. Empty string returned when not found. Header list keys are always in lowercase.
+     */
     public function header(string $key): string
     {
         return $key === '' ? '' : $this->headers[$key] ?? '';
@@ -444,7 +446,7 @@ final class Response
         return $this;
     }
 
-    /** It adds or updates an HTTP header. */
+    /** It adds or updates an HTTP header. Key is always converted to lowercase. */
     public function header(string $key, string $value): Response
     {
         $key = trim($key);
@@ -558,7 +560,7 @@ final class Ruta
      */
     public static function get(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::GET, $class_method_or_func);
+        self::match_route_delegate($path, [Method::GET], $class_method_or_func);
     }
 
     /**
@@ -568,7 +570,7 @@ final class Ruta
      */
     public static function head(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::HEAD, $class_method_or_func);
+        self::match_route_delegate($path, [Method::HEAD], $class_method_or_func);
     }
 
     /**
@@ -578,7 +580,7 @@ final class Ruta
      */
     public static function post(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::POST, $class_method_or_func);
+        self::match_route_delegate($path, [Method::POST], $class_method_or_func);
     }
 
     /**
@@ -588,7 +590,7 @@ final class Ruta
      */
     public static function put(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::PUT, $class_method_or_func);
+        self::match_route_delegate($path, [Method::PUT], $class_method_or_func);
     }
 
     /**
@@ -598,7 +600,7 @@ final class Ruta
      */
     public static function delete(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, 'DELETE', $class_method_or_func);
+        self::match_route_delegate($path, [Method::DELETE], $class_method_or_func);
     }
 
     /**
@@ -608,7 +610,7 @@ final class Ruta
      */
     public static function connect(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::CONNECT, $class_method_or_func);
+        self::match_route_delegate($path, [Method::CONNECT], $class_method_or_func);
     }
 
     /**
@@ -618,7 +620,7 @@ final class Ruta
      */
     public static function options(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::OPTIONS, $class_method_or_func);
+        self::match_route_delegate($path, [Method::OPTIONS], $class_method_or_func);
     }
 
     /**
@@ -628,7 +630,7 @@ final class Ruta
      */
     public static function trace(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::TRACE, $class_method_or_func);
+        self::match_route_delegate($path, [Method::TRACE], $class_method_or_func);
     }
 
     /**
@@ -638,7 +640,42 @@ final class Ruta
      */
     public static function patch(string $path, callable|array $class_method_or_func): void
     {
-        self::match_route_delegate($path, Method::PATCH, $class_method_or_func);
+        self::match_route_delegate($path, [Method::PATCH], $class_method_or_func);
+    }
+
+    /**
+     * It handles requests based a set of valid HTTP methods.
+     *
+     * @param array<string>          $methods
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function some(string $path, array $methods, callable|array $class_method_or_func): void
+    {
+        self::match_route_delegate($path, $methods, $class_method_or_func);
+    }
+
+    /**
+     * It handles requests based on all valid HTTP methods.
+     *
+     * @param callable|array<string> $class_method_or_func
+     */
+    public static function any(string $path, callable|array $class_method_or_func): void
+    {
+        self::match_route_delegate(
+            $path,
+            [
+                Method::GET,
+                Method::HEAD,
+                Method::POST,
+                Method::PUT,
+                Method::DELETE,
+                Method::CONNECT,
+                Method::OPTIONS,
+                Method::TRACE,
+                Method::PATCH,
+            ],
+            $class_method_or_func
+        );
     }
 
     /**
@@ -676,14 +713,15 @@ final class Ruta
     }
 
     /**
+     * @param array<string>          $methods
      * @param callable|array<string> $class_method_or_func
      */
-    private static function match_route_delegate(string $path, string $method, callable|array $class_method_or_func): void
+    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func): void
     {
         if (self::$instance === null) {
             self::new();
         }
-        if (self::$method !== $method) {
+        if (count($methods) === 0 || !in_array(self::$method, $methods, true)) {
             // TODO: maybe reply with a "405 Method Not Allowed"
             // but make sure to provide control for users
             self::$is_not_found = true;
@@ -699,10 +737,10 @@ final class Ruta
         // Handle class/method callable
         if (is_array($class_method_or_func)) {
             if (count($class_method_or_func) === 2) {
-                list($class_name, $method) = $class_method_or_func;
-                $class_obj                 = new $class_name();
-                if (is_callable([$class_obj, $method])) {
-                    self::call_user_method_array($class_obj, $method, $args);
+                list($class_name, $class_method) = $class_method_or_func;
+                $class_obj                       = new $class_name();
+                if (is_callable([$class_obj, $class_method])) {
+                    self::call_user_method_array($class_obj, $class_method, $args);
                     // Terminate when route found and delegated
                     exit;
                 }

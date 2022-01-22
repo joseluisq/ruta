@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace RutaExample;
 
 use Ruta\Header;
+use Ruta\Method;
 use Ruta\Ruta;
 use Ruta\Request;
 use Ruta\Response;
@@ -37,6 +38,14 @@ Ruta::get('/home/hola/redirect', function (Response $res) {
 
 Ruta::post('/home/{path3}/some2', function (Response $res) {
     $res->json(['post_data' => 11010101010]);
+});
+
+Ruta::some('/home/some', [Method::POST, Method::PUT], function (Request $req, Response $res) {
+    $res->json(['only' => $req->method()]);
+});
+
+Ruta::any('/home/methods', function (Request $req, Response $res) {
+    $res->json(['method' => $req->method()]);
 });
 
 Ruta::post('/home/{path}', function (Response $res) {
