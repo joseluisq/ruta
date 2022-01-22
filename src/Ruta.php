@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ruta;
 
-// It defines HTTP Status codes.
+/** It defines HTTP Status codes. */
 final class Status
 {
     public const Continue           = 100; // RFC 7231, 6.2.1
@@ -161,7 +161,7 @@ final class Status
     }
 }
 
-// It defines HTTP request methods.
+/** It defines HTTP request methods. */
 final class Method
 {
     public const GET     = 'GET';
@@ -174,7 +174,7 @@ final class Method
     public const TRACE   = 'TRACE';
 }
 
-// It defines an HTTP Header map.
+/** It defines HTTP headers. */
 final class Header
 {
     public const Accept                          = 'accept';
@@ -258,7 +258,7 @@ final class Header
     public const XXSSProtection                  = 'x-xss-protection';
 }
 
-// It represents a client request.
+/** It represents a client request. */
 final class Request
 {
     private string $proto        = '';
@@ -417,7 +417,7 @@ final class Request
     }
 }
 
-// It represents a server response.
+/** It represents a server response. */
 final class Response
 {
     private string $status = '';
@@ -430,7 +430,7 @@ final class Response
     public string $method = '';
 
     /** It adds or updates the HTTP status. */
-    public function status(int $status_code = Status::OK): Response
+    public function status(int $status_code): Response
     {
         $status_str = Status::text($status_code);
         if ($status_str !== '') {
@@ -453,14 +453,14 @@ final class Response
         return $this;
     }
 
-    /** It outputs an HTTP response in plain text format. */
+    /** It sends an HTTP response in plain text format. */
     public function text(string $data): void
     {
         $this->header(Header::ContentType, 'text/plain;charset=utf-8');
         $this->output($data);
     }
 
-    /** It outputs an HTTP response in JSON format. */
+    /** It sends an HTTP response in JSON format. */
     public function json(mixed $data, int $flags = 0, int $depth = 512): void
     {
         $this->header(Header::ContentType, 'application/json;charset=utf-8');
@@ -471,14 +471,14 @@ final class Response
         }
     }
 
-    /** It outputs an HTTP response in XML format. */
+    /** It sends an HTTP response in XML format. */
     public function xml(string $data): void
     {
         $this->header(Header::ContentType, 'application/xml;charset=utf-8');
         $this->output($data);
     }
 
-    /** It outputs an HTTP response in HTML format. */
+    /** It sends an HTTP response in HTML format. */
     public function html(string $data): void
     {
         $this->header(Header::ContentType, 'text/html;charset=utf-8');
@@ -486,10 +486,10 @@ final class Response
     }
 
     /** It redirects to a given URL. */
-    public function redirect(string $url, int $redirect_status = Status::PermanentRedirect): void
+    public function redirect(string $url_to, int $redirect_status = Status::PermanentRedirect): void
     {
         $this->status($redirect_status);
-        $this->header(Header::Location, $url);
+        $this->header(Header::Location, $url_to);
         $this->header(Header::ContentLength, '0');
         $this->apply_status_headers();
     }
@@ -522,7 +522,7 @@ final class Response
     }
 }
 
-/** A lightweight and multi purpose HTTP routing library for PHP. */
+/** A lightweight single-file HTTP routing library for PHP. */
 final class Ruta
 {
     private static Ruta|null $instance = null;
@@ -548,7 +548,7 @@ final class Ruta
     private static bool $is_not_found = false;
 
     /**
-     * It handles `GET` requests.
+     * It handles requests based on the HTTP `GET` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -558,7 +558,7 @@ final class Ruta
     }
 
     /**
-     * It handles `HEAD` requests.
+     * It handles requests based on the HTTP `HEAD` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -568,7 +568,7 @@ final class Ruta
     }
 
     /**
-     * It handles `POST` requests.
+     * It handles requests based on the HTTP `POST` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -578,7 +578,7 @@ final class Ruta
     }
 
     /**
-     * It handles `PUT` requests.
+     * It handles requests based on the HTTP `PUT` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -588,7 +588,7 @@ final class Ruta
     }
 
     /**
-     * It handles `DELETE` requests.
+     * It handles requests based on the HTTP `DELETE` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -598,7 +598,7 @@ final class Ruta
     }
 
     /**
-     * It handles `CONNECT` requests.
+     * It handles requests based on the HTTP `CONNECT` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -608,7 +608,7 @@ final class Ruta
     }
 
     /**
-     * It handles `OPTIONS` requests.
+     * It handles requests based on the HTTP `OPTIONS` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -618,7 +618,7 @@ final class Ruta
     }
 
     /**
-     * It handles `TRACE` requests.
+     * It handles requests based on the HTTP `TRACE` method.
      *
      * @param callable|array<string> $class_method_or_func
      */
@@ -628,7 +628,7 @@ final class Ruta
     }
 
     /**
-     * It handles 404 not found routes.
+     * It handles all `404` not found routes.
      *
      * @param \Closure|array<string> $class_method_or_func
      */
@@ -637,8 +637,8 @@ final class Ruta
         self::$not_found_class_method_or_func = $class_method_or_func;
     }
 
-    /** Create a new singleton instance of `Ruta`. */
-    public static function new(string $request_uri = '', string $request_method = ''): Ruta
+    /** It creates a new singleton instance of `Ruta`. */
+    private static function new(string $request_uri = '', string $request_method = ''): Ruta
     {
         if ($request_uri === '' && array_key_exists('REQUEST_URI', $_SERVER)) {
             $request_uri = $_SERVER['REQUEST_URI'];
@@ -726,11 +726,11 @@ final class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
                 if ($name === 'Ruta\Request') {
-                    $method_args[] = self::new_request();
+                    $method_args[] = new Request(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
                 if ($name === 'Ruta\Response') {
-                    $method_args[] = self::new_response();
+                    $method_args[] = new Response();
                     continue;
                 }
                 if ($name === 'array') {
@@ -758,11 +758,11 @@ final class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
                 if ($name === 'Ruta\Request') {
-                    $user_func_args[] = self::new_request();
+                    $user_func_args[] = new Request(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
                 if ($name === 'Ruta\Response') {
-                    $user_func_args[] = self::new_response();
+                    $user_func_args[] = new Response();
                     continue;
                 }
                 if ($name === 'array') {
@@ -772,16 +772,6 @@ final class Ruta
             }
         }
         call_user_func_array($user_func, $user_func_args);
-    }
-
-    private static function new_request(): Request
-    {
-        return new Request(self::$uri, self::$method, self::$path, self::$query);
-    }
-
-    private static function new_response(): Response
-    {
-        return new Response();
     }
 
     /**
@@ -879,7 +869,7 @@ final class Ruta
             // Handle function callable
             self::call_user_func_array(self::$not_found_class_method_or_func);
         } else {
-            $res = self::new_response();
+            $res = new Response();
             $res->status(Status::NotFound);
             $res->text(Status::text(Status::NotFound));
         }
