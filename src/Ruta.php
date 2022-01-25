@@ -173,6 +173,51 @@ final class Ruta
         self::$not_found_callable = $class_method_or_func;
     }
 
+    /**
+     * @param array<string>          $methods
+     * @param callable|array<string> $class_method_or_func
+     */
+    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func): void
+    {
+        if (self::$instance === null) {
+            self::new();
+        }
+        if (count($methods) === 0 || !in_array(self::$method, $methods, true)) {
+            // TODO: maybe reply with a "405 Method Not Allowed"
+            // but make sure to provide control for users
+            self::$is_not_found = true;
+
+            return;
+        }
+
+        list($match, $args) = self::match_path_query($path);
+        self::$is_not_found = !$match;
+        if (self::$is_not_found) {
+            return;
+        }
+
+        // Handle class/method callable
+        if (is_array($class_method_or_func)) {
+            if (count($class_method_or_func) === 2) {
+                list($class_name, $class_method) = $class_method_or_func;
+                $class_obj                       = new $class_name();
+                if (is_callable([$class_obj, $class_method])) {
+                    self::call_method_array($class_obj, $class_method, $args);
+                    // Terminate when route found and delegated
+                    exit;
+                }
+                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+            }
+            throw new \InvalidArgumentException('Provided array value is not a valid class and method pair.');
+        }
+
+        // Handle function callable
+        // @phpstan-ignore-next-line
+        self::call_func_array($class_method_or_func, $args);
+        // Terminate when route found and delegated
+        exit;
+    }
+
     /** It creates a new singleton instance of `Ruta`. */
     private static function new(): Ruta
     {
@@ -198,53 +243,9 @@ final class Ruta
     }
 
     /**
-     * @param array<string>          $methods
-     * @param callable|array<string> $class_method_or_func
-     */
-    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func): void
-    {
-        if (self::$instance === null) {
-            self::new();
-        }
-        if (count($methods) === 0 || !in_array(self::$method, $methods, true)) {
-            // TODO: maybe reply with a "405 Method Not Allowed"
-            // but make sure to provide control for users
-            self::$is_not_found = true;
-
-            return;
-        }
-        list($match, $args) = self::match_path_query($path);
-        self::$is_not_found = !$match;
-        if (!$match) {
-            return;
-        }
-
-        // Handle class/method callable
-        if (is_array($class_method_or_func)) {
-            if (count($class_method_or_func) === 2) {
-                list($class_name, $class_method) = $class_method_or_func;
-                $class_obj                       = new $class_name();
-                if (is_callable([$class_obj, $class_method])) {
-                    self::call_user_method_array($class_obj, $class_method, $args);
-                    // Terminate when route found and delegated
-                    exit;
-                }
-                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
-            }
-            throw new \InvalidArgumentException('Provided array value is not a valid class and method pair.');
-        }
-
-        // Handle function callable
-        // @phpstan-ignore-next-line
-        self::call_user_func_array($class_method_or_func, $args);
-        // Terminate when route found and delegated
-        exit;
-    }
-
-    /**
      * @param array<string> $args
      */
-    private static function call_user_method_array(object $class_obj, string $method, array $args = []): void
+    private static function call_method_array(object $class_obj, string $method, array $args = []): void
     {
         $fn          = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
@@ -276,7 +277,7 @@ final class Ruta
     /**
      * @param array<string> $args
      */
-    private static function call_user_func_array(\Closure $user_func, array $args = []): void
+    private static function call_func_array(\Closure $user_func, array $args = []): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
@@ -309,36 +310,45 @@ final class Ruta
      */
     private static function match_path_query(string $path): array
     {
-        $match           = true;
-        $args            = [];
-        $segs_def        = self::path_as_segments($path);
-        $segs_def_count  = count($segs_def);
-        $has_placeholder = false;
+        $match            = true;
+        $args             = [];
+        $segs_def         = self::path_as_segments($path);
+        $segs_def_count   = count($segs_def);
+        $segs_path_count  = count(self::$path);
+        $has_placeholder  = false;
 
         // TODO: check also query uri
-        for ($i = 0; $i < $segs_def_count; $i++) {
-            if (!array_key_exists($i, self::$path)) {
-                $match = false;
-                break;
-            }
-            $seg_in  = self::$path[$i];
-            $seg_def = $segs_def[$i];
-            if ($seg_def !== $seg_in) {
+        if ($segs_def_count > 0 && $segs_path_count > 0) {
+            for ($i = 0; $i < $segs_def_count; $i++) {
+                // Safety check for "undefined array index"
+                if (!array_key_exists($i, self::$path)) {
+                    $match = false;
+                    break;
+                }
+
+                // 1. If current segment matches then just continue
+                if ($segs_def[$i] === self::$path[$i]) {
+                    continue;
+                }
+
+                // 2. Otherwise proceed with the segment validation
+
                 // 1. placeholder
-                if (str_starts_with($seg_def, '{') && str_ends_with($seg_def, '}')) {
-                    $key = trim(substr(substr($seg_def, 0), 0, -1));
+                if (str_starts_with($segs_def[$i], '{') && str_ends_with($segs_def[$i], '}')) {
+                    $key = trim(substr(substr($segs_def[$i], 0), 0, -1));
                     if ($key !== '') {
-                        $args[$key]      = $seg_in;
+                        $args[$key]      = self::$path[$i];
                         $has_placeholder = true;
                         continue;
                     }
                 }
+
                 $match = false;
                 break;
             }
-        }
-        if ($match && !$has_placeholder && $segs_def_count < count(self::$path)) {
-            $match = false;
+            if ($match && !$has_placeholder && $segs_def_count < count(self::$path)) {
+                $match = false;
+            }
         }
 
         return [$match, $args];
@@ -389,7 +399,7 @@ final class Ruta
                 list($class_name, $method) = self::$not_found_callable;
                 $class_obj                 = new $class_name();
                 if (is_callable([$class_obj, $method])) {
-                    self::call_user_method_array($class_obj, $method);
+                    self::call_method_array($class_obj, $method);
 
                     return;
                 }
@@ -400,7 +410,7 @@ final class Ruta
         // Handle function callable
         if (is_callable(self::$not_found_callable)) {
             // @phpstan-ignore-next-line
-            self::call_user_func_array(self::$not_found_callable);
+            self::call_func_array(self::$not_found_callable);
 
             return;
         }
