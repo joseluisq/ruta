@@ -4,6 +4,33 @@
 
 > A lightweight HTTP routing library for PHP. (WIP)
 
+## Features
+
+- [x] HTTP status codes
+- [x] HTTP Methods
+- [x] HTTP Headers
+- [x] **HTTP Requests**
+  - [x] Handle `multipart/form-data` request data
+  - [x] Handle `x-www-form-urlencoded` request data
+  - [x] Handle `application/xml` request data
+  - [x] Handle `application/json` request data
+  - [x] Handle `query` URI request params
+  - [x] Access request `path` and `headers`
+- [x] **HTTP Responses**
+  - [x] HTML, JSON, XML or Text responses
+  - [x] HTTP redirections
+- [x] **HTTP Routing**
+  - [x] Routes with placeholder arguments: `/abc/{some}`
+  - [x] Handle multiple valid HTTP methods
+  - [x] Handle any valid HTTP method
+  - [x] Handle don't match routes (404s)
+  - [x] Supports callback or class/method style
+  - [x] Optional arguments and order-insensitive on callback or class/method
+  - [ ] Regular expressions support: `/abc/[a-z0-9]+`
+  - [ ] Optional route arguments: `/abc/{some?}`
+  - [ ] Fallback routes
+  - [ ] Route's cache
+
 ## Requirements
 
 [PHP 8.0](https://www.php.net/releases/8.0/en.php) or newer.
@@ -71,7 +98,7 @@ class HomeCtrl
     public function index(Request $req, Response $res, array $args)
     {
         // 2.1 $args contains route placeholder values
-        if (isset($args['path1'])) {
+        if (array_key_exists('path1', $args)) {
             // do something...
         }
 

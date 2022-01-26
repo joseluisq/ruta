@@ -61,7 +61,7 @@ class HomeCtrl
     public function index(Request $req, Response $res, array $args)
     {
         // 2.1 $args contains route placeholder values
-        if (isset($args['path1'])) {
+        if (array_key_exists('path1', $args)) {
             // do something...
         }
 
