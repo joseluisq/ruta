@@ -25,8 +25,8 @@
   - [x] Handle any valid HTTP method
   - [x] Handle don't match routes (404s)
   - [x] Supports callback or class/method style
-  - [x] Optional arguments and order-insensitive on callback or class/method
-  - [ ] Regular expressions support: `/abc/[a-z0-9]+`
+  - [x] Optional and order-insensitive arguments on callback or class/method handlers
+  - [x] Regular expressions support: `/abc/regex(id=^[0-9]+$)`
   - [ ] Optional route arguments: `/abc/{some?}`
   - [ ] Fallback routes
   - [ ] Route's cache
@@ -72,6 +72,9 @@ Ruta::get('/home/hola', function (Request $req, Response $res) {
 });
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
+});
+Ruta::get('/reg/regex(id=^[0-9]+$)/exp', function (Response $res, array $args) {
+    $res->json(['args' => $args]);
 });
 Ruta::post('/home/{path3}/some2', function (Response $res) {
     $res->json(['post_data' => 11010101010]);

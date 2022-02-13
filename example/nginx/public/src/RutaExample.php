@@ -35,6 +35,9 @@ Ruta::get('/home/hola', function (Request $req, Response $res) {
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
 });
+Ruta::get('/reg/regex(id=^[0-9]+$)/exp', function (Response $res, array $args) {
+    $res->json(['args' => $args]);
+});
 
 Ruta::post('/home/{path3}/some2', function (Response $res) {
     $res->json(['post_data' => 11010101010]);

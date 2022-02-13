@@ -326,20 +326,47 @@ final class Ruta
                     break;
                 }
 
+                $seg = $segs_def[$i];
+
                 // 1. If current segment matches then just continue
-                if ($segs_def[$i] === self::$path[$i]) {
+                if ($seg === self::$path[$i]) {
                     continue;
                 }
 
                 // 2. Otherwise proceed with the segment validation
 
-                // 1. placeholder
-                if (str_starts_with($segs_def[$i], '{') && str_ends_with($segs_def[$i], '}')) {
-                    $key = trim(substr(substr($segs_def[$i], 0), 0, -1));
+                // 1. Placeholders
+                if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
+                    $key = substr(substr($seg, 0), 0, -1);
                     if ($key !== '') {
                         $args[$key]      = self::$path[$i];
                         $has_placeholder = true;
                         continue;
+                    }
+                }
+
+                // 2. Regular Expressions
+                // format: regex(key=^[0-9]+$)
+                if (str_starts_with($seg, 'regex(') && str_ends_with($seg, ')')) {
+                    $slug            = $segs_def[$i];
+                    $regex_key_start = strpos($slug, '(');
+                    $regex_key_end   = strpos($slug, '=');
+
+                    if (is_integer($regex_key_end) && is_integer($regex_key_start)) {
+                        $regex_key      = substr($slug, $regex_key_start + 1);
+                        $regex_key_last = strpos($regex_key, '=');
+
+                        if (is_integer($regex_key_last)) {
+                            $regex_key = substr($regex_key, 0, $regex_key_last);
+                            $regex     = substr($slug, $regex_key_end + 1);
+                            $regex     = substr($regex, 0, strlen($regex) - 1);
+
+                            if (preg_match("/$regex/", self::$path[$i]) === 1) {
+                                $args[$regex_key]      = self::$path[$i];
+                                $has_placeholder       = true;
+                                continue;
+                            }
+                        }
                     }
                 }
 
