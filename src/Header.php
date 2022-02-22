@@ -31,7 +31,7 @@ final class Header
     public const AccessControlRequestMethod      = 'access-control-request-method';
     public const Age                             = 'age';
     public const Allow                           = 'allow';
-    public const Altsvc                          = 'alt-svc';
+    public const AltSvc                          = 'alt-svc';
     public const Authorization                   = 'authorization';
     public const CacheControl                    = 'cache-control';
     public const Connection                      = 'connection';
@@ -92,7 +92,7 @@ final class Header
     public const Warning                         = 'warning';
     public const WwwAuthenticate                 = 'www-authenticate';
     public const XContentTypeOptions             = 'x-content-type-options';
-    public const XDNSPrefetchControl             = 'x-dns-prefetch-control';
+    public const XDnsPrefetchControl             = 'x-dns-prefetch-control';
     public const XFrameOptions                   = 'x-frame-options';
-    public const XXSSProtection                  = 'x-xss-protection';
+    public const XXssProtection                  = 'x-xss-protection';
 }

@@ -26,11 +26,10 @@ use Ruta\Status;
 // However they are optional and their order can be modified. See more examples below.
 
 Ruta::get('/home/hola', function (Request $req, Response $res) {
-    $res
-        ->json([
-            'host' => $req->header(Header::Host),
-            'headers' => $req->headers(),
-        ]);
+    $res->json([
+        'host' => $req->header(Header::Host),
+        'headers' => $req->headers(),
+    ]);
 });
 Ruta::get('/home/hola/redirect', function (Response $res) {
     $res->redirect('/home/aaa/some/bbb');
@@ -52,8 +51,7 @@ Ruta::any('/home/methods', function (Request $req, Response $res) {
 });
 
 Ruta::post('/home/{path}', function (Response $res) {
-    $res
-        ->header('X-Header-One', 'Header Value 1')
+    $res->header('X-Header-One', 'Header Value 1')
         ->header('X-Header-Two', 'Header Value 2')
         ->json(['some_data' => 223424234]);
 });
@@ -89,9 +87,7 @@ class HomeCtrl
     // Custom 404 reply
     public function not_found(Response $res)
     {
-        $res
-            ->status(Status::NotFound)
-            ->text("404 - Page Not Found!");
+        $res->status(Status::NotFound)->text("404 - Page Not Found!");
     }
 }
 

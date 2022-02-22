@@ -153,8 +153,10 @@ final class Status
         Status::NetworkAuthenticationRequired => 'Network Authentication Required',
     ];
 
-    // It returns a text for the HTTP status code.
-    // An empty string is returned if the code is unknown.
+    /**
+     * It returns a description text for the HTTP status code.
+     * An empty string is returned if the code is unknown.
+     */
     public static function text(int $status_code): string
     {
         return self::STATUS_MAP[$status_code] ?? '';
