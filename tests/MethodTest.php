@@ -3,7 +3,7 @@
 use Ruta\Method;
 
 test('Method: validate constants', function () {
-    $method = new \ReflectionClass(Method::class);
+    $method  = new \ReflectionClass(Method::class);
     $methods = $method->getConstants();
 
     expect($methods)->toBeArray();

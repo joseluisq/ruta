@@ -3,7 +3,7 @@
 use Ruta\Request;
 
 test('Request: create initial class instance', function () {
-    $uri = '/server/info/';
+    $uri  = '/server/info/';
     $path = explode('/', $uri);
     array_shift($path);
     array_pop($path);

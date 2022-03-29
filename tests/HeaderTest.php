@@ -3,7 +3,7 @@
 use Ruta\Header;
 
 test('Header: validate constants', function () {
-    $header = new \ReflectionClass(Header::class);
+    $header  = new \ReflectionClass(Header::class);
     $headers = $header->getConstants();
 
     expect($headers)->toBeArray();

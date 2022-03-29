@@ -3,7 +3,7 @@
 use Ruta\Status;
 
 test('Status: validate status code contants', function () {
-    $status = new \ReflectionClass(Status::class);
+    $status   = new \ReflectionClass(Status::class);
     $statuses = $status->getConstants(\ReflectionClassConstant::IS_PUBLIC);
 
     expect($statuses)->toBeArray();
@@ -11,7 +11,7 @@ test('Status: validate status code contants', function () {
     foreach ($statuses as $k => $i) {
         expect($i)->toBeInt();
 
-        $txt = Status::text($i);
+        $txt   = Status::text($i);
         $parts = explode(' ', str_replace($txt, '-', ''));
         $const = '';
         foreach ($parts as $w) {
