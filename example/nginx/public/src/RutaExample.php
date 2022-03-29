@@ -25,41 +25,56 @@ use Ruta\Status;
 // NOTE: `Request`, `Response`, `array` (slug arguments) are passed to the callback.
 // However they are optional and their order can be modified. See more examples below.
 
-Ruta::get('/home/hola', function (Request $req, Response $res) {
-    $res->json([
-        'host' => $req->header(Header::Host),
-        'headers' => $req->headers(),
+$app = new \AppGati;
+$app->step('start');
+
+Ruta::get('/server/info', function (Request $req, Response $resp) {
+    $app = new \AppGati;
+    $app->step('start');
+
+    $resp->json([
+        'server' => $_SERVER,
+        'method' => $req->method(),
+        ...$req->headers(),
     ]);
-});
-Ruta::get('/home/hola/redirect', function (Response $res) {
-    $res->redirect('/home/aaa/some/bbb');
-});
-Ruta::get('/reg/regex(id=^[0-9]+$)/exp', function (Response $res, array $args) {
-    $res->json(['args' => $args]);
+
+    $app->step('end');
+    $report = $app->getReport('start', 'end');
+    file_put_contents('/usr/share/nginx/html/log.log', var_export($report, true) . PHP_EOL, LOCK_EX);
 });
 
-Ruta::post('/home/{path3}/some2', function (Response $res) {
-    $res->json(['post_data' => 11010101010]);
+Ruta::get('/home/hola/redirect', function (Response $resp) {
+    $resp->redirect('/home/aaa/some/bbb');
 });
 
-Ruta::some('/home/some', [Method::POST, Method::PUT], function (Request $req, Response $res) {
-    $res->json(['only' => $req->method()]);
+Ruta::get('/reg/regex(id=^[0-9]+$)/exp', function (Response $resp, array $args) {
+    $resp->json(['args' => $args]);
 });
 
-Ruta::any('/home/methods', function (Request $req, Response $res) {
-    $res->json(['method' => $req->method()]);
+Ruta::post('/home/{path3}/some2', function (Response $resp) {
+    $resp->json(['post_data' => 11010101010]);
 });
 
-Ruta::post('/home/{path}', function (Response $res) {
-    $res->header('X-Header-One', 'Header Value 1')
+Ruta::some('/home/some', [Method::POST, Method::PUT], function (Request $req, Response $resp) {
+    $resp->json(['only' => $req->method()]);
+});
+
+Ruta::any('/home/methods', function (Request $req, Response $resp) {
+    $resp->json(['method' => $req->method()]);
+});
+
+Ruta::post('/home/{path}', function (Response $resp) {
+    $resp
+        ->header('X-Header-One', 'Header Value 1')
         ->header('X-Header-Two', 'Header Value 2')
+        ->header(Header::Server, 'Ruta Server')
         ->json(['some_data' => 223424234]);
 });
 
 // 2. class/method style
 class HomeCtrl
 {
-    public function index(Request $req, Response $res, array $args)
+    public function index(Request $req, Response $resp, array $args)
     {
         // 2.1 $args contains route placeholder values
         if (array_key_exists('path1', $args)) {
@@ -71,7 +86,7 @@ class HomeCtrl
         // 2.3. Get all headers
         $data = $req->headers();
         // 2.4. Get a single header
-        $data = $req->header("Host");
+        $data = $req->header('Host');
         // 2.5. Get data provided via `application/x-www-form-urlencoded` 
         $data = $req->urlencoded();
         // 2.6. Get data provided via `application/json`
@@ -81,13 +96,15 @@ class HomeCtrl
         // 2.8. Get query data
         $data = $req->query();
 
-        $res->json(['data' => 'Message from a class!']);
+        $resp->json(['data' => 'Message from a class!']);
     }
 
     // Custom 404 reply
-    public function not_found(Response $res)
+    public function not_found(Response $resp)
     {
-        $res->status(Status::NotFound)->text("404 - Page Not Found!");
+        $resp
+            ->status(Status::NotFound)
+            ->xml('404 - Page Not Found!');
     }
 }
 
@@ -95,3 +112,7 @@ Ruta::get('/home/{path1}/some/{path2}', [HomeCtrl::class, 'index']);
 
 // 3. Handle 404 not found routes
 Ruta::not_found([HomeCtrl::class, 'not_found']);
+
+$app->step('end');
+$report = $app->getReport('start', 'end');
+file_put_contents('/usr/share/nginx/html/log.log', var_export($report, true) . PHP_EOL, LOCK_EX);

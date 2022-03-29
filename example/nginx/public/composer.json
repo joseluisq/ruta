@@ -25,5 +25,8 @@
       ],
     "require": {
         "joseluisq/ruta": "*"
+    },
+    "require-dev": {
+        "subiabre/appgati": "dev-master"
     }
 }

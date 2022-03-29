@@ -16,13 +16,12 @@ namespace Ruta;
 /** It represents a client request. */
 final class Request
 {
-    private string $proto        = '';
+    private string $proto        = 'HTTP/1.1';
+    private string $content_type = '';
+    private string $raw_data     = '';
 
     /** @var array<string> */
     private array $headers       = [];
-
-    private string $content_type = '';
-    private string $raw_data     = '';
 
     /**
      * @param string        $uri
@@ -36,7 +35,7 @@ final class Request
         private array $path,
         private array $query,
     ) {
-        $this->proto        = $_SERVER['SERVER_PROTOCOL'] ?? '';
+        $this->proto        = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
         $this->content_type = trim($_SERVER['HTTP_CONTENT_TYPE'] ?? '');
 
         foreach ($_SERVER as $name => $value) {
