@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** It defines HTTP request methods. */
-final class Method
+class Method
 {
     // RFC 7231, section 4: Request methods
     public const GET     = 'GET';

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** A lightweight HTTP routing library for PHP. */
-final class Ruta
+class Ruta
 {
     private static Ruta|null $instance = null;
 
@@ -256,12 +256,12 @@ final class Ruta
             }
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
-                if ($name === 'Ruta\Request') {
-                    $method_args[] = new Request(self::$uri, self::$method, self::$path, self::$query);
+                if (get_parent_class($name) === 'Ruta\Request') {
+                    $method_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if ($name === 'Ruta\Response') {
-                    $method_args[] = new Response();
+                if (get_parent_class($name) === 'Ruta\Response') {
+                    $method_args[] = new $name();
                     continue;
                 }
                 if ($name === 'array') {

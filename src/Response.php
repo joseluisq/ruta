@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** It represents a server response. */
-final class Response
+class Response
 {
     private string $status = '';
 

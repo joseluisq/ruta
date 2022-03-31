@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** It defines HTTP Status codes. */
-final class Status
+class Status
 {
     public const Continue           = 100; // RFC 7231, 6.2.1
     public const SwitchingProtocols = 101; // RFC 7231, 6.2.2

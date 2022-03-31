@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** It defines HTTP headers. */
-final class Header
+class Header
 {
     public const Accept                          = 'accept';
     public const AcceptCharset                   = 'accept-charset';

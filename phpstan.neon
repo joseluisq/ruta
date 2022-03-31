@@ -7,6 +7,7 @@ parameters:
     level: max
     paths:
         - src
-
     checkMissingIterableValueType: true
     reportUnmatchedIgnoredErrors: true
+    ignoreErrors:
+        - '#Class [a-zA-Z0-9\\_]+ is neither abstract nor final.#'

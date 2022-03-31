@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** It represents a client request. */
-final class Request
+class Request
 {
     private string $proto        = 'HTTP/1.1';
     private string $content_type = '';
