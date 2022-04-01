@@ -288,12 +288,12 @@ class Ruta
             }
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
-                if ($name === 'Ruta\Request') {
-                    $user_func_args[] = new Request(self::$uri, self::$method, self::$path, self::$query);
+                if (get_parent_class($name) === 'Ruta\Request') {
+                    $user_func_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if ($name === 'Ruta\Response') {
-                    $user_func_args[] = new Response();
+                if (get_parent_class($name) === 'Ruta\Response') {
+                    $user_func_args[] = new $name();
                     continue;
                 }
                 if ($name === 'array') {
@@ -314,68 +314,66 @@ class Ruta
         $args             = [];
         $segs_def         = self::path_as_segments($path);
         $segs_def_count   = count($segs_def);
-        $segs_path_count  = count(self::$path);
         $has_placeholder  = false;
 
         // TODO: check also query uri
-        if ($segs_def_count > 0 && $segs_path_count > 0) {
-            for ($i = 0; $i < $segs_def_count; $i++) {
-                // Safety check for "undefined array index"
-                if (!array_key_exists($i, self::$path)) {
-                    $match = false;
-                    break;
-                }
-
-                $seg = $segs_def[$i];
-
-                // 1. If current segment matches then just continue
-                if ($seg === self::$path[$i]) {
-                    continue;
-                }
-
-                // 2. Otherwise proceed with the segment validation
-
-                // 1. Placeholders
-                if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
-                    $key = substr(substr($seg, 0), 0, -1);
-                    if ($key !== '') {
-                        $args[$key]      = self::$path[$i];
-                        $has_placeholder = true;
-                        continue;
-                    }
-                }
-
-                // 2. Regular Expressions
-                // format: regex(key=^[0-9]+$)
-                if (str_starts_with($seg, 'regex(') && str_ends_with($seg, ')')) {
-                    $slug            = $segs_def[$i];
-                    $regex_key_start = strpos($slug, '(');
-                    $regex_key_end   = strpos($slug, '=');
-
-                    if (is_integer($regex_key_end) && is_integer($regex_key_start)) {
-                        $regex_key      = substr($slug, $regex_key_start + 1);
-                        $regex_key_last = strpos($regex_key, '=');
-
-                        if (is_integer($regex_key_last)) {
-                            $regex_key = substr($regex_key, 0, $regex_key_last);
-                            $regex     = substr($slug, $regex_key_end + 1);
-                            $regex     = substr($regex, 0, strlen($regex) - 1);
-
-                            if (preg_match("/$regex/", self::$path[$i]) === 1) {
-                                $args[$regex_key]      = self::$path[$i];
-                                $has_placeholder       = true;
-                                continue;
-                            }
-                        }
-                    }
-                }
-
+        for ($i = 0; $i < $segs_def_count; $i++) {
+            // Safety check for "undefined array index"
+            if (!array_key_exists($i, self::$path)) {
                 $match = false;
                 break;
             }
-            if ($match && !$has_placeholder && $segs_def_count < count(self::$path)) {
-                $match = false;
+
+            $seg = $segs_def[$i];
+
+            // 1. If current segment matches then just continue
+            if ($seg === self::$path[$i]) {
+                continue;
             }
+
+            // 2. Otherwise proceed with the segment validation
+
+            // 1. Placeholders
+            if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
+                $key = substr(substr($seg, 0), 0, -1);
+                if ($key !== '') {
+                    $args[$key]      = self::$path[$i];
+                    $has_placeholder = true;
+                    continue;
+                }
+            }
+
+            // 2. Regular Expressions
+            // format: regex(key=^[0-9]+$)
+            if (str_starts_with($seg, 'regex(') && str_ends_with($seg, ')')) {
+                $slug            = $segs_def[$i];
+                $regex_key_start = strpos($slug, '(');
+                $regex_key_end   = strpos($slug, '=');
+
+                if (is_integer($regex_key_end) && is_integer($regex_key_start)) {
+                    $regex_key      = substr($slug, $regex_key_start + 1);
+                    $regex_key_last = strpos($regex_key, '=');
+
+                    if (is_integer($regex_key_last)) {
+                        $regex_key = substr($regex_key, 0, $regex_key_last);
+                        $regex     = substr($slug, $regex_key_end + 1);
+                        $regex     = substr($regex, 0, strlen($regex) - 1);
+
+                        if (preg_match("/$regex/", self::$path[$i]) === 1) {
+                            $args[$regex_key]      = self::$path[$i];
+                            $has_placeholder       = true;
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            $match = false;
+            break;
+        }
+
+        if ($match && !$has_placeholder && $segs_def_count < count(self::$path)) {
+            $match = false;
         }
 
         return [$match, $args];
