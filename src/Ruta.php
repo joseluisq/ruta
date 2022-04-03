@@ -32,6 +32,11 @@ class Ruta
     private static array $query   = [];
 
     /**
+     * @var array<string>
+     */
+    private static array $data    = [];
+
+    /**
      * @var \Closure|array<string>
      */
     private static \Closure|array $not_found_callable = [];
@@ -41,110 +46,132 @@ class Ruta
     /**
      * It handles requests based on the HTTP `GET` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function get(string $path, callable|array $class_method_or_func): void
+    public static function get(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::GET], $class_method_or_func);
+        self::match_route_delegate($path, [Method::GET], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `HEAD` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function head(string $path, callable|array $class_method_or_func): void
+    public static function head(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::HEAD], $class_method_or_func);
+        self::match_route_delegate($path, [Method::HEAD], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `POST` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function post(string $path, callable|array $class_method_or_func): void
+    public static function post(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::POST], $class_method_or_func);
+        self::match_route_delegate($path, [Method::POST], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `PUT` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function put(string $path, callable|array $class_method_or_func): void
+    public static function put(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::PUT], $class_method_or_func);
+        self::match_route_delegate($path, [Method::PUT], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `DELETE` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function delete(string $path, callable|array $class_method_or_func): void
+    public static function delete(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::DELETE], $class_method_or_func);
+        self::match_route_delegate($path, [Method::DELETE], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `CONNECT` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function connect(string $path, callable|array $class_method_or_func): void
+    public static function connect(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::CONNECT], $class_method_or_func);
+        self::match_route_delegate($path, [Method::CONNECT], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `OPTIONS` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function options(string $path, callable|array $class_method_or_func): void
+    public static function options(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::OPTIONS], $class_method_or_func);
+        self::match_route_delegate($path, [Method::OPTIONS], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `TRACE` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function trace(string $path, callable|array $class_method_or_func): void
+    public static function trace(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::TRACE], $class_method_or_func);
+        self::match_route_delegate($path, [Method::TRACE], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on the HTTP `PATCH` method.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function patch(string $path, callable|array $class_method_or_func): void
+    public static function patch(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::PATCH], $class_method_or_func);
+        self::match_route_delegate($path, [Method::PATCH], $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based a set of valid HTTP methods.
      *
      * @param array<string>          $methods
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function some(string $path, array $methods, callable|array $class_method_or_func): void
+    public static function some(string $path, array $methods, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, $methods, $class_method_or_func);
+        self::match_route_delegate($path, $methods, $class_method_or_func, $data);
     }
 
     /**
      * It handles requests based on all valid HTTP methods.
      *
-     * @param callable|array<string> $class_method_or_func
+     * @param string                 $path                 URI
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function any(string $path, callable|array $class_method_or_func): void
+    public static function any(string $path, callable|array $class_method_or_func, array $data = []): void
     {
         self::match_route_delegate(
             $path,
@@ -159,7 +186,8 @@ class Ruta
                 Method::TRACE,
                 Method::PATCH,
             ],
-            $class_method_or_func
+            $class_method_or_func,
+            $data,
         );
     }
 
@@ -167,21 +195,25 @@ class Ruta
      * It handles all `404` not found routes.
      *
      * @param \Closure|array<string> $class_method_or_func
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    public static function not_found(\Closure|array $class_method_or_func): void
+    public static function not_found(\Closure|array $class_method_or_func, array $data = []): void
     {
+        self::$data               = $data;
         self::$not_found_callable = $class_method_or_func;
     }
 
     /**
      * @param array<string>          $methods
      * @param callable|array<string> $class_method_or_func
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func): void
+    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func, array $data = []): void
     {
         if (self::$instance === null) {
             self::new();
         }
+        self::$data = $data;
         if (count($methods) === 0 || !in_array(self::$method, $methods, true)) {
             // TODO: maybe reply with a "405 Method Not Allowed"
             // but make sure to provide control for users
@@ -202,7 +234,7 @@ class Ruta
                 list($class_name, $class_method) = $class_method_or_func;
                 $class_obj                       = new $class_name();
                 if (is_callable([$class_obj, $class_method])) {
-                    self::call_method_array($class_obj, $class_method, $args);
+                    self::call_method_array($class_obj, $class_method, $args, $data);
                     // Terminate when route found and delegated
                     exit;
                 }
@@ -213,7 +245,7 @@ class Ruta
 
         // Handle function callable
         // @phpstan-ignore-next-line
-        self::call_func_array($class_method_or_func, $args);
+        self::call_func_array($class_method_or_func, $args, $data);
         // Terminate when route found and delegated
         exit;
     }
@@ -244,8 +276,9 @@ class Ruta
 
     /**
      * @param array<string> $args
+     * @param array<string> $data
      */
-    private static function call_method_array(object $class_obj, string $method, array $args = []): void
+    private static function call_method_array(object $class_obj, string $method, array $args = [], array $data = []): void
     {
         $fn          = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
@@ -256,6 +289,10 @@ class Ruta
             }
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
+                if ($name === 'array') {
+                    $method_args[] = ['args' => $args, 'data' => $data];
+                    continue;
+                }
                 if (get_parent_class($name) === 'Ruta\Request') {
                     $method_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
@@ -264,11 +301,11 @@ class Ruta
                     $method_args[] = new $name();
                     continue;
                 }
-                if ($name === 'array') {
-                    $method_args[] = $args;
-                    continue;
-                }
             }
+        }
+        // Pass also data array to 'route_data' property
+        if (property_exists($class_obj, 'route_data')) {
+            $class_obj->route_data = $data;
         }
         // @phpstan-ignore-next-line
         call_user_func_array([$class_obj, $method], $method_args);
@@ -276,11 +313,13 @@ class Ruta
 
     /**
      * @param array<string> $args
+     * @param array<string> $data
      */
-    private static function call_func_array(\Closure $user_func, array $args = []): void
+    private static function call_func_array(\Closure $user_func, array $args = [], array $data = []): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
+        $with_args      = false;
         foreach ($fn->getParameters() as $param) {
             $t = $param->getType();
             if ($t === null) {
@@ -288,6 +327,11 @@ class Ruta
             }
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
+                if ($name === 'array') {
+                    $user_func_args[] = ['args' => $args, 'data' => $data];
+                    $with_args        = true;
+                    continue;
+                }
                 if (get_parent_class($name) === 'Ruta\Request') {
                     $user_func_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
@@ -296,11 +340,10 @@ class Ruta
                     $user_func_args[] = new $name();
                     continue;
                 }
-                if ($name === 'array') {
-                    $user_func_args[] = $args;
-                    continue;
-                }
             }
+        }
+        if (!$with_args) {
+            $user_func_args[] = ['args' => $args, 'data' => $data];
         }
         call_user_func_array($user_func, $user_func_args);
     }
@@ -424,7 +467,11 @@ class Ruta
                 list($class_name, $method) = self::$not_found_callable;
                 $class_obj                 = new $class_name();
                 if (is_callable([$class_obj, $method])) {
-                    self::call_method_array($class_obj, $method);
+                    // Pass also data array to 'route_data' property
+                    if (property_exists($class_obj, 'route_data')) {
+                        $class_obj->route_data = self::$data;
+                    }
+                    self::call_method_array($class_obj, $method, [], self::$data);
 
                     return;
                 }
@@ -435,7 +482,7 @@ class Ruta
         // Handle function callable
         if (is_callable(self::$not_found_callable)) {
             // @phpstan-ignore-next-line
-            self::call_func_array(self::$not_found_callable);
+            self::call_func_array(self::$not_found_callable, [], self::$data);
 
             return;
         }
