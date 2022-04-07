@@ -234,7 +234,7 @@ class Ruta
                 list($class_name, $class_method) = $class_method_or_func;
                 $class_obj                       = new $class_name();
                 if (is_callable([$class_obj, $class_method])) {
-                    self::call_method_array($class_obj, $class_method, $args, $data);
+                    self::call_method_array($class_obj, $class_method, $args);
                     // Terminate when route found and delegated
                     exit;
                 }
@@ -245,7 +245,7 @@ class Ruta
 
         // Handle function callable
         // @phpstan-ignore-next-line
-        self::call_func_array($class_method_or_func, $args, $data);
+        self::call_func_array($class_method_or_func, $args);
         // Terminate when route found and delegated
         exit;
     }
@@ -276,9 +276,8 @@ class Ruta
 
     /**
      * @param array<string> $args
-     * @param array<string> $data
      */
-    private static function call_method_array(object $class_obj, string $method, array $args = [], array $data = []): void
+    private static function call_method_array(object $class_obj, string $method, array $args = []): void
     {
         $fn          = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
@@ -290,7 +289,7 @@ class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
                 if ($name === 'array') {
-                    $method_args[] = ['args' => $args, 'data' => $data];
+                    $method_args[] = ['args' => $args, 'data' => self::$data];
                     continue;
                 }
                 if (get_parent_class($name) === 'Ruta\Request') {
@@ -305,7 +304,7 @@ class Ruta
         }
         // Pass also data array to 'route_data' property
         if (property_exists($class_obj, 'route_data')) {
-            $class_obj->route_data = $data;
+            $class_obj->route_data = self::$data;
         }
         // @phpstan-ignore-next-line
         call_user_func_array([$class_obj, $method], $method_args);
@@ -313,9 +312,8 @@ class Ruta
 
     /**
      * @param array<string> $args
-     * @param array<string> $data
      */
-    private static function call_func_array(\Closure $user_func, array $args = [], array $data = []): void
+    private static function call_func_array(\Closure $user_func, array $args = []): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
@@ -328,7 +326,7 @@ class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $name = $t->getName();
                 if ($name === 'array') {
-                    $user_func_args[] = ['args' => $args, 'data' => $data];
+                    $user_func_args[] = ['args' => $args, 'data' => self::$data];
                     $with_args        = true;
                     continue;
                 }
@@ -343,7 +341,7 @@ class Ruta
             }
         }
         if (!$with_args) {
-            $user_func_args[] = ['args' => $args, 'data' => $data];
+            $user_func_args[] = ['args' => $args, 'data' => self::$data];
         }
         call_user_func_array($user_func, $user_func_args);
     }
@@ -471,7 +469,7 @@ class Ruta
                     if (property_exists($class_obj, 'route_data')) {
                         $class_obj->route_data = self::$data;
                     }
-                    self::call_method_array($class_obj, $method, [], self::$data);
+                    self::call_method_array($class_obj, $method, []);
 
                     return;
                 }
@@ -482,7 +480,7 @@ class Ruta
         // Handle function callable
         if (is_callable(self::$not_found_callable)) {
             // @phpstan-ignore-next-line
-            self::call_func_array(self::$not_found_callable, [], self::$data);
+            self::call_func_array(self::$not_found_callable, []);
 
             return;
         }
