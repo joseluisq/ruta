@@ -292,17 +292,17 @@ class Ruta
                     $method_args[] = ['args' => $args, 'data' => self::$data];
                     continue;
                 }
-                if (get_parent_class($name) === 'Ruta\Request') {
+                if ($name === 'Ruta\Request' || get_parent_class($name) === 'Ruta\Request') {
                     $method_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if (get_parent_class($name) === 'Ruta\Response') {
+                if ($name === 'Ruta\Response' || get_parent_class($name) === 'Ruta\Response') {
                     $method_args[] = new $name();
                     continue;
                 }
             }
         }
-        // Pass also data array to 'route_data' property
+        // Pass data array to 'route_data' property
         if (property_exists($class_obj, 'route_data')) {
             $class_obj->route_data = self::$data;
         }
@@ -330,11 +330,11 @@ class Ruta
                     $with_args        = true;
                     continue;
                 }
-                if (get_parent_class($name) === 'Ruta\Request') {
+                if ($name === 'Ruta\Request' || get_parent_class($name) === 'Ruta\Request') {
                     $user_func_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if (get_parent_class($name) === 'Ruta\Response') {
+                if ($name === 'Ruta\Response' || get_parent_class($name) === 'Ruta\Response') {
                     $user_func_args[] = new $name();
                     continue;
                 }
