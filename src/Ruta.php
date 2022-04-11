@@ -376,7 +376,7 @@ class Ruta
 
             // 1. Placeholders
             if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
-                $key = substr(substr($seg, 0), 0, -1);
+                $key = substr(substr($seg, 1), 0, -1);
                 if ($key !== '') {
                     $args[$key]      = self::$path[$i];
                     $has_placeholder = true;
