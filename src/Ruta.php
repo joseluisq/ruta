@@ -287,17 +287,21 @@ class Ruta
                 continue;
             }
             if ($t instanceof \ReflectionNamedType) {
-                $name = $t->getName();
-                if ($name === 'array') {
-                    $method_args[] = ['args' => $args, 'data' => self::$data];
+                $tname = $t->getName();
+                if ($tname === 'array') {
+                    $method_args[] = match ($param->getName()) {
+                        'args'  => $args,
+                        'data'  => self::$data,
+                        default => ['args' => $args, 'data' => self::$data],
+                    };
                     continue;
                 }
-                if ($name === 'Ruta\Request' || get_parent_class($name) === 'Ruta\Request') {
-                    $method_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
+                if ($tname === 'Ruta\Request' || get_parent_class($tname) === 'Ruta\Request') {
+                    $method_args[] = new $tname(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if ($name === 'Ruta\Response' || get_parent_class($name) === 'Ruta\Response') {
-                    $method_args[] = new $name();
+                if ($tname === 'Ruta\Response' || get_parent_class($tname) === 'Ruta\Response') {
+                    $method_args[] = new $tname();
                     continue;
                 }
             }
@@ -324,18 +328,22 @@ class Ruta
                 continue;
             }
             if ($t instanceof \ReflectionNamedType) {
-                $name = $t->getName();
-                if ($name === 'array') {
-                    $user_func_args[] = ['args' => $args, 'data' => self::$data];
+                $tname = $t->getName();
+                if ($tname === 'array') {
+                    $user_func_args[] = match ($param->getName()) {
+                        'args'  => $args,
+                        'data'  => self::$data,
+                        default => ['args' => $args, 'data' => self::$data],
+                    };
                     $with_args        = true;
                     continue;
                 }
-                if ($name === 'Ruta\Request' || get_parent_class($name) === 'Ruta\Request') {
-                    $user_func_args[] = new $name(self::$uri, self::$method, self::$path, self::$query);
+                if ($tname === 'Ruta\Request' || get_parent_class($tname) === 'Ruta\Request') {
+                    $user_func_args[] = new $tname(self::$uri, self::$method, self::$path, self::$query);
                     continue;
                 }
-                if ($name === 'Ruta\Response' || get_parent_class($name) === 'Ruta\Response') {
-                    $user_func_args[] = new $name();
+                if ($tname === 'Ruta\Response' || get_parent_class($tname) === 'Ruta\Response') {
+                    $user_func_args[] = new $tname();
                     continue;
                 }
             }
