@@ -154,7 +154,7 @@ class Ruta
     /**
      * It handles requests based a set of valid HTTP methods.
      *
-     * @param array<string>          $methods
+     * @param array<string>          $methods              Array of valid HTTP methods
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
      * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
@@ -165,7 +165,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on all valid HTTP methods.
+     * It handles requests for any valid HTTP method.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -204,12 +204,54 @@ class Ruta
     }
 
     /**
+     * Middleware that handles any valid HTTP request **before** to route delegation.
+     *
+     * @param callable|array<string> $class_method_or_func Class method string array or callable
+     * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
+     */
+    public static function before(callable|array $class_method_or_func, array $data = []): void
+    {
+        self::match_route_delegate(
+            '',
+            [
+                Method::GET,
+                Method::HEAD,
+                Method::POST,
+                Method::PUT,
+                Method::DELETE,
+                Method::CONNECT,
+                Method::OPTIONS,
+                Method::TRACE,
+                Method::PATCH,
+            ],
+            $class_method_or_func,
+            $data,
+            true,
+        );
+    }
+
+    /**
      * @param array<string>          $methods
      * @param callable|array<string> $class_method_or_func
      * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    private static function match_route_delegate(string $path, array $methods, callable|array $class_method_or_func, array $data = []): void
-    {
+    private static function match_route_delegate(
+        string $path,
+        array $methods,
+        callable|array $class_method_or_func,
+        array $data = [],
+        bool $is_middleware = false,
+    ): void {
+        if (!$is_middleware) {
+            $path = trim($path);
+            if ($path === '') {
+                throw new \InvalidArgumentException('Provided path can not be empty.');
+            }
+            if (!str_starts_with($path, '/')) {
+                throw new \InvalidArgumentException('Provided path should start with a slash (/).');
+            }
+        }
+
         if (self::$instance === null) {
             self::new();
         }
@@ -222,10 +264,17 @@ class Ruta
             return;
         }
 
-        list($match, $args) = self::match_path_query($path);
-        self::$is_not_found = !$match;
-        if (self::$is_not_found) {
-            return;
+        $match = false;
+        $args  = [];
+        if (!$is_middleware) {
+            // Check incoming path/query
+            $result               = self::match_path_query($path);
+            $match                = $result[0];
+            $args                 = $result[1];
+            self::$is_not_found   = !$match;
+            if (self::$is_not_found) {
+                return;
+            }
         }
 
         // Handle class/method callable
@@ -234,20 +283,32 @@ class Ruta
                 list($class_name, $class_method) = $class_method_or_func;
                 $class_obj                       = new $class_name();
                 if (is_callable([$class_obj, $class_method])) {
-                    self::call_method_array($class_obj, $class_method, $args);
-                    // Terminate when route found and delegated
-                    exit;
+                    self::call_method_array($class_obj, $class_method, $args, $is_middleware);
+
+                    // If was a middleware then just return.
+                    // Otherwise exit the route when found and if its callback was delegated
+                    if ($is_middleware) {
+                        return;
+                    } else {
+                        exit;
+                    }
                 }
                 throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
             }
-            throw new \InvalidArgumentException('Provided array value is not a valid class and method pair.');
+            throw new \InvalidArgumentException('Provided array value is not a valid class/method pair.');
         }
 
         // Handle function callable
         // @phpstan-ignore-next-line
-        self::call_func_array($class_method_or_func, $args);
-        // Terminate when route found and delegated
-        exit;
+        self::call_func_array($class_method_or_func, $args, $is_middleware);
+
+        // If middleware then just return.
+        // Otherwise exit the route when found and if its callback was delegated
+        if ($is_middleware) {
+            return;
+        } else {
+            exit;
+        }
     }
 
     /** It creates a new singleton instance of `Ruta`. */
@@ -277,8 +338,12 @@ class Ruta
     /**
      * @param array<string> $args
      */
-    private static function call_method_array(object $class_obj, string $method, array $args = []): void
-    {
+    private static function call_method_array(
+        object $class_obj,
+        string $method,
+        array $args = [],
+        bool $is_middleware = false,
+    ): void {
         $fn          = new \ReflectionMethod($class_obj, $method);
         $method_args = [];
         foreach ($fn->getParameters() as $param) {
@@ -289,11 +354,15 @@ class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $tname = $t->getName();
                 if ($tname === 'array') {
-                    $method_args[] = match ($param->getName()) {
-                        'args'  => $args,
-                        'data'  => self::$data,
-                        default => ['args' => $args, 'data' => self::$data],
-                    };
+                    if ($is_middleware) {
+                        $method_args[] = self::$data;
+                    } else {
+                        $method_args[] = match ($param->getName()) {
+                            'args'  => $args,
+                            'data'  => self::$data,
+                            default => ['args' => $args, 'data' => self::$data],
+                        };
+                    }
                     continue;
                 }
                 if ($tname === 'Ruta\Request' || get_parent_class($tname) === 'Ruta\Request') {
@@ -317,7 +386,7 @@ class Ruta
     /**
      * @param array<string> $args
      */
-    private static function call_func_array(\Closure $user_func, array $args = []): void
+    private static function call_func_array(\Closure $user_func, array $args = [], bool $is_middleware = false): void
     {
         $fn             = new \ReflectionFunction($user_func);
         $user_func_args = [];
@@ -330,12 +399,16 @@ class Ruta
             if ($t instanceof \ReflectionNamedType) {
                 $tname = $t->getName();
                 if ($tname === 'array') {
-                    $user_func_args[] = match ($param->getName()) {
-                        'args'  => $args,
-                        'data'  => self::$data,
-                        default => ['args' => $args, 'data' => self::$data],
-                    };
-                    $with_args        = true;
+                    if ($is_middleware) {
+                        $user_func_args[] = self::$data;
+                    } else {
+                        $user_func_args[] = match ($param->getName()) {
+                            'args'  => $args,
+                            'data'  => self::$data,
+                            default => ['args' => $args, 'data' => self::$data],
+                        };
+                    }
+                    $with_args = true;
                     continue;
                 }
                 if ($tname === 'Ruta\Request' || get_parent_class($tname) === 'Ruta\Request') {
@@ -349,7 +422,11 @@ class Ruta
             }
         }
         if (!$with_args) {
-            $user_func_args[] = ['args' => $args, 'data' => self::$data];
+            if ($is_middleware) {
+                $user_func_args[] = self::$data;
+            } else {
+                $user_func_args[] = ['args' => $args, 'data' => self::$data];
+            }
         }
         call_user_func_array($user_func, $user_func_args);
     }

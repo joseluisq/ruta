@@ -28,6 +28,15 @@ use Ruta\Status;
 $app = new \AppGati;
 $app->step('start');
 
+// Middleware example which should be defined at the beginning
+Ruta::before(function (Request $req, Response $resp) {
+    // Example: Redirect if request uri is /
+    if ($req->uri() === '/') {
+        $resp->redirect('/server/info');
+        exit;
+    }
+});
+
 Ruta::get('/server/info', function (Request $req, Response $resp) {
     $app = new \AppGati;
     $app->step('start');

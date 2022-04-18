@@ -30,6 +30,9 @@
   - [ ] Optional route arguments: `/abc/{some?}`
   - [ ] Fallback routes
   - [ ] Route's cache
+- [x] **Middlewares**
+  - [x] Inspect or filter valid requests before routing 
+  - [ ] Inspect or filter valid requests after routing 
 
 ## Requirements
 
