@@ -16,9 +16,9 @@
         "php": ">=8.0"
     },
     "require-dev": {
-        "pestphp/pest": "^1.21",
+        "pestphp/pest": "^1.22",
         "pestphp/pest-plugin-parallel": "^1.0",
-        "pestphp/pest-dev-tools": "dev-master",
+        "pestphp/pest-dev-tools": "1.x",
         "subiabre/appgati": "^2.0"
     },
     "config": {
