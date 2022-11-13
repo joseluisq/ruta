@@ -24,8 +24,6 @@ class Request
     private array $headers       = [];
 
     /**
-     * @param string        $uri
-     * @param string        $method
      * @param array<string> $path
      * @param array<string> $query
      */
@@ -135,7 +133,7 @@ class Request
     /**
      * It gets the body data of a `x-www-form-urlencoded` content type request.
      *
-     * @return array<string>
+     * @return array<int|string, array<int, string>|string>
      */
     public function urlencoded(): array
     {
