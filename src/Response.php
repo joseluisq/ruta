@@ -23,7 +23,20 @@ class Response
      */
     private array $headers = [];
 
-    public string $method = '';
+    public bool $skip_body_sending = false;
+
+    public function __construct()
+    {
+        $this->status(Status::OK);
+    }
+
+    /** It prevents sending the response body. */
+    public function skip_body_sending(): Response
+    {
+        $this->skip_body_sending = true;
+
+        return $this;
+    }
 
     /** It adds or updates the HTTP status. */
     public function status(int $status_code): Response
@@ -53,7 +66,7 @@ class Response
     public function text(string $data): void
     {
         $this->header(Header::ContentType, 'text/plain;charset=utf-8');
-        $this->output($data);
+        $this->send($data);
     }
 
     /** It sends an HTTP response in JSON format. */
@@ -63,7 +76,7 @@ class Response
         // @phpstan-ignore-next-line
         $json = json_encode($data, $flags, $depth);
         if ($json !== false) {
-            $this->output($json);
+            $this->send($json);
         }
     }
 
@@ -71,14 +84,14 @@ class Response
     public function xml(string $data): void
     {
         $this->header(Header::ContentType, 'application/xml;charset=utf-8');
-        $this->output($data);
+        $this->send($data);
     }
 
     /** It sends an HTTP response in HTML format. */
     public function html(string $data): void
     {
         $this->header(Header::ContentType, 'text/html;charset=utf-8');
-        $this->output($data);
+        $this->send($data);
     }
 
     /** It redirects to a given URL. */
@@ -87,33 +100,28 @@ class Response
         $this->status($redirect_status);
         $this->header(Header::Location, $url_to);
         $this->header(Header::ContentLength, '0');
-        $this->apply_status_headers();
+        $this->send_headers();
     }
 
-    /** It outputs the corresponding response using a given raw data. */
-    private function output(string $data): void
+    /** It sends the corresponding response using the given raw string data. */
+    private function send(string $data): void
     {
         $this->header(Header::ContentLength, (string) strlen($data));
-        $this->apply_status_headers();
-        if ($this->method != Method::HEAD) {
+        $this->send_headers();
+        if (!$this->skip_body_sending) {
             echo $data;
         }
     }
 
-    /** It applies the current HTTP status and the available headers. */
-    private function apply_status_headers(): void
+    /** It sends the current HTTP status and the available HTTP headers. */
+    private function send_headers(): void
     {
-        // Apply HTTP status
-        if ($this->status === '') {
-            $this->status(Status::OK);
-        }
+        // Apply the HTTP status
         header($this->status);
-        $this->status = '';
 
         // Apply HTTP common/custom headers
         foreach ($this->headers as $key => $value) {
             header("$key: $value");
         }
-        $this->headers = [];
     }
 }

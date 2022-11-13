@@ -1,3 +1,13 @@
+docker-tests:
+	@echo "Testing Ruta with PHP 8.0"
+	@docker run --rm -it -v $(PWD):/var/www/html joseluisq/php-fpm:8.0 \
+		sh -c 'php -v && composer install && composer run-script test'
+	@echo
+	@echo "Testing Ruta with PHP 8.1"
+	@docker run --rm -it -v $(PWD):/var/www/html joseluisq/php-fpm:8.1 \
+		sh -c 'php -v && composer install && composer run-script test'
+.PHONY: docker-tests
+
 compose-up:
 	@cd example/nginx/public/ && composer install
 	@docker-compose -f example/docker-compose.yml up
