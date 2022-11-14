@@ -18,12 +18,13 @@ final class RutaUtils
     /**
      * @return array<string>
      */
-    public static function path_as_segments(string $path): array
+    public static function path_segments(string $path): array
     {
         $raw = parse_url($path, PHP_URL_PATH);
         if (!is_string($raw)) {
             return [];
         }
+
         $path    = trim($raw);
         $segs    = [];
         $j       = 0;
@@ -34,12 +35,14 @@ final class RutaUtils
                 if ($i === 0 || $slashes > 1) {
                     continue;
                 }
+
                 $j++;
                 continue;
             }
+
             if (!array_key_exists($j, $segs)) {
                 $slashes = 0;
-                array_push($segs, '');
+                $segs[]  = '';
             }
             $segs[$j] .= $path[$i];
         }
@@ -48,63 +51,68 @@ final class RutaUtils
     }
 
     /**
-     * @param array<string> $full_path_segments
+     * Check if a string path matches a given path segments.
+     * It supports "equal", "placeholders" and "regular expressions" matches.
      *
-     * @return array{0:bool,1:string[]}
+     * @param string        $path_slug          the input path slug. It can be a plain path, "placeholders" or "regular expressions".
+     * @param array<string> $path_segs_to_match the path segments to match the input path against it
+     *
+     * @return array{0:bool,1:string[]} returns an array of two elements. First is a bool if matched and second are path arguments.
      */
-    public static function match_path_query(string $path, array $full_path_segments): array
+    public static function match_path_query(string $path_slug, array $path_segs_to_match): array
     {
         $match            = true;
         $args             = [];
-        $segs_def         = RutaUtils::path_as_segments($path);
-        $segs_def_count   = count($segs_def);
+        $segs             = RutaUtils::path_segments($path_slug);
+        $segs_count       = count($segs);
         $has_placeholder  = false;
 
         // TODO: check also query uri
-        for ($i = 0; $i < $segs_def_count; $i++) {
+
+        for ($i = 0; $i < $segs_count; $i++) {
             // Safety check for "undefined array index"
-            if (!array_key_exists($i, $full_path_segments)) {
+            if (!array_key_exists($i, $path_segs_to_match)) {
                 $match = false;
                 break;
             }
 
-            $seg = $segs_def[$i];
+            $seg      = $segs[$i];
+            $path_seg = $path_segs_to_match[$i];
 
             // 1. If current segment matches then just continue
-            if ($seg === $full_path_segments[$i]) {
+            if ($seg === $path_seg) {
                 continue;
             }
 
             // 2. Otherwise proceed with the segment validation
 
-            // 1. Placeholders
+            // 2.1. Check for "Placeholders"
             if (str_starts_with($seg, '{') && str_ends_with($seg, '}')) {
                 $key = substr(substr($seg, 1), 0, -1);
                 if ($key !== '') {
-                    $args[$key]      = $full_path_segments[$i];
+                    $args[$key]      = $path_seg;
                     $has_placeholder = true;
                     continue;
                 }
             }
 
-            // 2. Regular Expressions
-            // format: regex(key=^[0-9]+$)
+            // 2.2. Check for "Regular Expressions"
+            // Format: regex(key=^[0-9]+$)
             if (str_starts_with($seg, 'regex(') && str_ends_with($seg, ')')) {
-                $slug            = $segs_def[$i];
-                $regex_key_start = strpos($slug, '(');
-                $regex_key_end   = strpos($slug, '=');
+                $regex_key_start = strpos($seg, '(');
+                $regex_key_end   = strpos($seg, '=');
 
-                if (is_integer($regex_key_end) && is_integer($regex_key_start)) {
-                    $regex_key      = substr($slug, $regex_key_start + 1);
+                if (is_integer($regex_key_start) && is_integer($regex_key_end)) {
+                    $regex_key      = substr($seg, $regex_key_start + 1);
                     $regex_key_last = strpos($regex_key, '=');
 
                     if (is_integer($regex_key_last)) {
-                        $regex_key = substr($regex_key, 0, $regex_key_last);
-                        $regex     = substr($slug, $regex_key_end + 1);
+                        $regex     = substr($seg, $regex_key_end + 1);
                         $regex     = substr($regex, 0, strlen($regex) - 1);
 
-                        if (preg_match("/$regex/", $full_path_segments[$i]) === 1) {
-                            $args[$regex_key]      = $full_path_segments[$i];
+                        if (preg_match("/$regex/", $path_seg) === 1) {
+                            $regex_key             = substr($regex_key, 0, $regex_key_last);
+                            $args[$regex_key]      = $path_seg;
                             $has_placeholder       = true;
                             continue;
                         }
@@ -116,7 +124,7 @@ final class RutaUtils
             break;
         }
 
-        if ($match && !$has_placeholder && $segs_def_count < count($full_path_segments)) {
+        if ($match && !$has_placeholder && $segs_count < count($path_segs_to_match)) {
             $match = false;
         }
 

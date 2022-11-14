@@ -27,7 +27,7 @@ class Ruta
      */
     public static function get(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::GET], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::GET], $class_method_or_func, $data);
     }
 
     /**
@@ -39,7 +39,7 @@ class Ruta
      */
     public static function head(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::HEAD], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::HEAD], $class_method_or_func, $data);
     }
 
     /**
@@ -51,7 +51,7 @@ class Ruta
      */
     public static function post(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::POST], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::POST], $class_method_or_func, $data);
     }
 
     /**
@@ -63,7 +63,7 @@ class Ruta
      */
     public static function put(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::PUT], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::PUT], $class_method_or_func, $data);
     }
 
     /**
@@ -75,7 +75,7 @@ class Ruta
      */
     public static function delete(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::DELETE], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::DELETE], $class_method_or_func, $data);
     }
 
     /**
@@ -87,7 +87,7 @@ class Ruta
      */
     public static function connect(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::CONNECT], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::CONNECT], $class_method_or_func, $data);
     }
 
     /**
@@ -99,7 +99,7 @@ class Ruta
      */
     public static function options(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::OPTIONS], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::OPTIONS], $class_method_or_func, $data);
     }
 
     /**
@@ -111,7 +111,7 @@ class Ruta
      */
     public static function trace(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::TRACE], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::TRACE], $class_method_or_func, $data);
     }
 
     /**
@@ -123,7 +123,7 @@ class Ruta
      */
     public static function patch(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, [Method::PATCH], $class_method_or_func, $data);
+        self::match_delegate_route($path, [Method::PATCH], $class_method_or_func, $data);
     }
 
     /**
@@ -136,7 +136,7 @@ class Ruta
      */
     public static function some(string $path, array $methods, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate($path, $methods, $class_method_or_func, $data);
+        self::match_delegate_route($path, $methods, $class_method_or_func, $data);
     }
 
     /**
@@ -148,7 +148,7 @@ class Ruta
      */
     public static function any(string $path, callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate(
+        self::match_delegate_route(
             $path,
             [
                 Method::GET,
@@ -174,8 +174,8 @@ class Ruta
      */
     public static function not_found(\Closure|array $class_method_or_func, array $data = []): void
     {
-        self::$data               = $data;
         self::$not_found_callable = $class_method_or_func;
+        self::$data               = $data;
     }
 
     /**
@@ -186,7 +186,7 @@ class Ruta
      */
     public static function before(callable|array $class_method_or_func, array $data = []): void
     {
-        self::match_route_delegate(
+        self::match_delegate_route(
             '',
             [
                 Method::GET,

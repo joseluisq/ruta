@@ -47,7 +47,7 @@ trait RutaTrait
      * @param callable|array<string> $class_method_or_func
      * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
      */
-    private static function match_route_delegate(
+    private static function match_delegate_route(
         string $path,
         array $methods,
         callable|array $class_method_or_func,
@@ -67,6 +67,7 @@ trait RutaTrait
         if (self::$instance === null) {
             self::new();
         }
+
         self::$data = $data;
         if (count($methods) === 0 || !in_array(self::$method, $methods, true)) {
             // TODO: maybe reply with a "405 Method Not Allowed"
@@ -135,7 +136,7 @@ trait RutaTrait
             throw new \InvalidArgumentException('HTTP request method is not provided.');
         }
         self::$uri    = $uri;
-        self::$path   = RutaUtils::path_as_segments($uri);
+        self::$path   = RutaUtils::path_segments($uri);
         /* @phpstan-ignore-next-line */
         self::$query  = $_GET;
         self::$method = $method;
