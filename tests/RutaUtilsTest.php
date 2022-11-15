@@ -11,6 +11,17 @@ declare(strict_types=1);
  * with this source code in the files LICENSE-APACHE and LICENSE-MIT respectively.
  */
 
+declare(strict_types=1);
+
+/*
+ * This file is part of Ruta.
+ *
+ * (c) Jose Quintana <joseluisq.net>
+ *
+ * This source file is subject to the Apache 2.0 and MIT licenses which are bundled
+ * with this source code in the files LICENSE-APACHE and LICENSE-MIT respectively.
+ */
+
 use Ruta\RutaUtils;
 
 test('path_segments: returns empty array', function () {

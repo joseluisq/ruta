@@ -19,7 +19,7 @@ class Ruta
     use RutaTrait;
 
     /**
-     * It handles requests based on the HTTP `GET` method.
+     * It handles HTTP `GET` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -31,7 +31,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `HEAD` method.
+     * It handles HTTP `HEAD` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -43,7 +43,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `POST` method.
+     * It handles HTTP `POST` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -55,7 +55,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `PUT` method.
+     * It handles HTTP `PUT` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -67,7 +67,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `DELETE` method.
+     * It handles HTTP `DELETE` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -79,7 +79,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `CONNECT` method.
+     * It handles HTTP `CONNECT` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -91,7 +91,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `OPTIONS` method.
+     * It handles HTTP `OPTIONS` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -103,7 +103,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `TRACE` method.
+     * It handles HTTP `TRACE` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -115,7 +115,7 @@ class Ruta
     }
 
     /**
-     * It handles requests based on the HTTP `PATCH` method.
+     * It handles HTTP `PATCH` method requests.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -127,9 +127,9 @@ class Ruta
     }
 
     /**
-     * It handles requests based a set of valid HTTP methods.
+     * It handles requests based a set of standard HTTP methods.
      *
-     * @param array<string>          $methods              Array of valid HTTP methods
+     * @param array<string>          $methods              Array of standard HTTP methods
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
      * @param array<string>          $data                 Additional data that will be passed to `$class_method_or_func`
@@ -140,7 +140,7 @@ class Ruta
     }
 
     /**
-     * It handles requests for any valid HTTP method.
+     * It handles requests for any standard HTTP method.
      *
      * @param string                 $path                 URI
      * @param callable|array<string> $class_method_or_func Class method string array or callable
@@ -174,7 +174,7 @@ class Ruta
      */
     public static function not_found(\Closure|array $class_method_or_func, array $data = []): void
     {
-        self::$not_found_callable = $class_method_or_func;
+        self::$not_found_func     = $class_method_or_func;
         self::$data               = $data;
     }
 
