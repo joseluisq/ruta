@@ -9,5 +9,6 @@ parameters:
         - src
     checkMissingIterableValueType: true
     reportUnmatchedIgnoredErrors: true
+    treatPhpDocTypesAsCertain: false
     ignoreErrors:
         - '#Class [a-zA-Z0-9\\_]+ is neither abstract nor final.#'

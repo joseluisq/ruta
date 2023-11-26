@@ -43,9 +43,9 @@ class Request
         }
 
         if (
-            $method === Method::POST ||
-            $method === Method::PUT ||
-            $method === Method::DELETE
+            $method === Method::POST
+            || $method === Method::PUT
+            || $method === Method::DELETE
         ) {
             $input          = file_get_contents('php://input');
             $this->raw_data = $input === false ? '' : $input;

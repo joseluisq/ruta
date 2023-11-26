@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Ruta;
 
-trait RutaTrait
+trait RouteTrait
 {
-    private static Ruta|null $instance = null;
+    private static Route|null $instance = null;
 
     private static string $uri    = '';
     private static string $method = '';
@@ -36,11 +36,35 @@ trait RutaTrait
     private static array $data    = [];
 
     /**
-     * @var \Closure|array<string>
+     * @var \Closure|array<string>|null
      */
     private static null|\Closure|array $not_found_func;
 
     private static bool $is_not_found = false;
+
+    /** It creates a new singleton instance of `Route`. */
+    private static function new(): Route
+    {
+        $uri    = urldecode($_SERVER['REQUEST_URI']);
+        $method = trim($_SERVER['REQUEST_METHOD']);
+        if ($uri === '') {
+            throw new \InvalidArgumentException('The HTTP request uri is not provided.');
+        }
+        if ($method === '') {
+            throw new \InvalidArgumentException('The HTTP request method is not provided.');
+        }
+        self::$uri    = $uri;
+        self::$path   = RouteUtils::path_segments($uri);
+        /* @phpstan-ignore-next-line */
+        self::$query  = $_GET;
+        self::$method = $method;
+        if (self::$instance !== null) {
+            return self::$instance;
+        }
+        self::$instance = new Route();
+
+        return self::$instance;
+    }
 
     /**
      * @param array<string>          $methods
@@ -58,10 +82,10 @@ trait RutaTrait
         if (!$is_middleware) {
             $path = trim($path);
             if ($path === '') {
-                throw new \InvalidArgumentException('Provided path can not be empty.');
+                throw new \InvalidArgumentException('The provided route path can not be empty.');
             }
             if (!str_starts_with($path, '/')) {
-                throw new \InvalidArgumentException('Provided path should start with a slash (/).');
+                throw new \InvalidArgumentException('The provided route path should start with a slash (/).');
             }
         }
 
@@ -84,7 +108,7 @@ trait RutaTrait
         $match = false;
         $args  = [];
         if (!$is_middleware) {
-            $result               = RutaUtils::match_path_query($path, self::$path);
+            $result               = RouteUtils::match_path_query($path, self::$path);
             $match                = $result[0];
             $args                 = $result[1];
             self::$is_not_found   = !$match;
@@ -109,15 +133,15 @@ trait RutaTrait
                     // Otherwise, when the route is found and delegated then just terminate the script
                     exit;
                 }
-                throw new \InvalidArgumentException('Provided class is not defined or its method is not callable.');
+                throw new \InvalidArgumentException('The provided class is not defined or its method is not callable.');
             }
-            throw new \InvalidArgumentException('Provided array value is not a valid class/method pair.');
+            throw new \InvalidArgumentException('The provided array value is not a valid class/method pair.');
         }
 
         // Delegate function callable
         // @phpstan-ignore-next-line
         if (!is_callable($class_method_or_func)) {
-            throw new \InvalidArgumentException('Provided function is not defined or not callable.');
+            throw new \InvalidArgumentException('The provided function is not defined or not callable.');
         }
 
         // @phpstan-ignore-next-line
@@ -130,30 +154,6 @@ trait RutaTrait
 
         // Otherwise, when the route is found and delegated then just terminate the script
         exit;
-    }
-
-    /** It creates a new singleton instance of `Ruta`. */
-    private static function new(): Ruta
-    {
-        $uri    = urldecode($_SERVER['REQUEST_URI']);
-        $method = trim($_SERVER['REQUEST_METHOD']);
-        if ($uri === '') {
-            throw new \InvalidArgumentException('HTTP request uri is not provided.');
-        }
-        if ($method === '') {
-            throw new \InvalidArgumentException('HTTP request method is not provided.');
-        }
-        self::$uri    = $uri;
-        self::$path   = RutaUtils::path_segments($uri);
-        /* @phpstan-ignore-next-line */
-        self::$query  = $_GET;
-        self::$method = $method;
-        if (self::$instance !== null) {
-            return self::$instance;
-        }
-        self::$instance = new Ruta();
-
-        return self::$instance;
     }
 
     /**
@@ -284,13 +284,11 @@ trait RutaTrait
 
             // Delegate function callable
             if (is_callable(self::$not_found_func)) {
-                // @phpstan-ignore-next-line
                 self::call_func(self::$not_found_func, []);
-
                 // When function delegated then just terminate the script
                 exit;
             }
-            throw new \InvalidArgumentException('Provided function is not defined or not callable.');
+            throw new \InvalidArgumentException('The provided function is not defined or not callable.');
         }
 
         // Otherwise send default response

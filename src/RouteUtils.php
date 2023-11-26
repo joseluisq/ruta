@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ruta;
 
-final class RutaUtils
+final class RouteUtils
 {
     /**
      * @return array<string>
@@ -63,7 +63,7 @@ final class RutaUtils
     {
         $match            = true;
         $args             = [];
-        $segs             = RutaUtils::path_segments($path_slug);
+        $segs             = RouteUtils::path_segments($path_slug);
         $segs_count       = count($segs);
         $has_placeholder  = false;
 

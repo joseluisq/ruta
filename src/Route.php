@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Ruta;
 
 /** A lightweight HTTP routing library for PHP. */
-class Ruta
+class Route
 {
-    use RutaTrait;
+    use RouteTrait;
 
     /**
      * It handles HTTP `GET` method requests.
